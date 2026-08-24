@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>youtube-speed-studio · Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body data-theme="dark">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-brand"><div class="logo">S</div><div><strong>youtube-speed-studio</strong><small id="versionLabel">v1.0.0</small></div></div>
+      <nav>
+        <button class="nav-item active" data-page="playback"><span>01</span>播放</button>
+        <button class="nav-item" data-page="shortcuts"><span>02</span>快捷鍵</button>
+        <button class="nav-item" data-page="profiles"><span>03</span>智慧 Profile</button>
+        <button class="nav-item" data-page="overlay"><span>04</span>懸浮窗</button>
+        <button class="nav-item" data-page="downloads"><span>05</span>下載</button>
+        <button class="nav-item" data-page="diagnostics"><span>06</span>診斷與資料</button>
+        <button class="nav-item" data-page="appearance"><span>07</span>外觀與語言</button>
+      </nav>
+      <div class="side-footer"><span id="saveState">設定自動儲存</span><small>YouTube · bilibili</small></div>
+    </aside>
+
+    <main class="content">
+      <header class="page-header"><div><p>YOUTUBE SPEED STUDIO</p><h1 id="pageTitle">播放設定</h1><span id="pageSubtitle">控制一般影片、Shorts、Boost 與倍速範圍。</span></div><label class="master-switch"><span>啟用</span><input id="enabled" type="checkbox" /></label></header>
+
+      <section class="page active" data-page="playback">
+        <div class="speed-hero">
+          <article class="feature-card general"><span>一般影片</span><div class="number-control hero-number" data-control="generalSpeed" data-step-source="step"><button data-step="-1">−</button><label><input id="generalSpeed" type="text" inputmode="decimal" role="spinbutton" /><i>×</i></label><button data-step="1">+</button></div></article>
+          <article class="feature-card shorts"><span>Shorts</span><div class="number-control hero-number" data-control="shortsSpeed" data-step-source="step"><button data-step="-1">−</button><label><input id="shortsSpeed" type="text" inputmode="decimal" role="spinbutton" /><i>×</i></label><button data-step="1">+</button></div></article>
+        </div>
+        <div class="card platform-card"><div class="card-head"><div><h2>平台支援</h2><p>同一套播放核心使用 Provider Adapter；YouTube 完整支援，bilibili 先提供 HTML5 播放控制、快捷鍵與懸浮窗。</p></div><span class="platform-badge">MULTI-PLATFORM</span></div>
+          <div class="platform-grid">
+            <article class="platform-item is-on"><div class="platform-mark youtube-mark">YT</div><div><b>YouTube</b><small>倍速 · Shorts · Profile · Download Studio</small></div><span>完整</span></article>
+            <label class="platform-item"><div class="platform-mark bili-mark">B</div><div><b>bilibili</b><small>倍速 · 快捷鍵 · 懸浮控制 · 位置記憶</small></div><input id="bilibiliEnabled" type="checkbox" /></label>
+          </div>
+        </div>
+        <div class="card"><div class="card-head"><div><h2>速度引擎</h2><p>所有數值控制均為自製元件，不使用瀏覽器原生 spinner。</p></div></div>
+          <div class="setting-grid">
+            <div class="setting"><span>每次增減<small>快捷鍵與懸浮窗的步進</small></span><div class="number-control compact-number" data-control="step" data-fixed-step="0.01" data-min="0.01" data-max="0.25"><button data-step="-1">−</button><label><input id="step" type="text" inputmode="decimal" /><i>×</i></label><button data-step="1">+</button></div></div>
+            <div class="setting"><span>Boost 倍速<small>按住 Boost 快捷鍵</small></span><div class="number-control compact-number" data-control="boostSpeed" data-fixed-step="0.25"><button data-step="-1">−</button><label><input id="boostSpeed" type="text" inputmode="decimal" /><i>×</i></label><button data-step="1">+</button></div></div>
+            <div class="setting"><span>最低倍速<small>允許的播放下限</small></span><div class="number-control compact-number" data-control="minSpeed" data-fixed-step="0.05" data-min="0.1"><button data-step="-1">−</button><label><input id="minSpeed" type="text" inputmode="decimal" /><i>×</i></label><button data-step="1">+</button></div></div>
+            <div class="setting"><span>最高倍速<small>極速模式最高可精準到 16×</small></span><div class="number-control compact-number" data-control="maxSpeed" data-fixed-step="0.25" data-min="0.1" data-max="16"><button data-step="-1">−</button><label><input id="maxSpeed" type="text" inputmode="decimal" /><i>×</i></label><button data-step="1">+</button></div></div>
+          </div>
+          <div class="toggle-list">
+            <label><span><b>極速模式</b><small>允許 4× 以上，最高 16×</small></span><input id="extremeMode" type="checkbox" /></label>
+            <label><span><b>記住最後倍速</b><small>依目前 Profile 或全域設定保存</small></span><input id="rememberLast" type="checkbox" /></label>
+            <label><span><b>鎖定倍速</b><small>網站播放器改動速度時自動拉回</small></span><input id="lockSpeed" type="checkbox" /></label>
+            <label><span><b>保持原音調</b><small>使用 HTMLMediaElement.preservesPitch</small></span><input id="preservePitch" type="checkbox" /></label>
+          </div>
+          <label class="text-field"><span>快速倍速<small>逗號分隔，最多 8 個</small></span><input id="presets" type="text" placeholder="1, 1.25, 1.5, 2, 3" /></label>
+        </div>
+      </section>
+
+      <section class="page" data-page="shortcuts">
+        <div class="card"><div class="card-head"><div><h2>快捷鍵</h2><p>點選按鍵卡後直接按新按鍵；輸入框、搜尋框與留言框中不攔截。</p></div></div>
+          <div class="shortcut-grid">
+            <button class="key-capture" data-setting="decreaseKey"><span>減速</span><kbd id="decreaseKeyLabel">[</kbd><small>每次 -Step</small></button>
+            <button class="key-capture" data-setting="increaseKey"><span>加速</span><kbd id="increaseKeyLabel">]</kbd><small>每次 +Step</small></button>
+            <button class="key-capture" data-setting="boostKey"><span>按住暫時加速</span><kbd id="boostKeyLabel">`</kbd><small>放開恢復</small></button>
+            <button class="key-capture" data-setting="pauseKey"><span>按住暫停加速</span><kbd id="pauseKeyLabel">\</kbd><small>按住為 1×</small></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-page="profiles">
+        <div class="card"><div class="card-head"><div><h2>智慧 Profile</h2><p>播放清單優先於頻道，未設定時使用全域設定；會保存一般 / Shorts、Boost、鎖定與原音調。</p></div><label class="inline-switch"><input id="profilesEnabled" type="checkbox" /><span></span></label></div>
+          <div class="runtime-box"><div><small>目前偵測來源</small><strong id="profileRuntimeStatus">正在尋找 YouTube 分頁…</strong></div><button id="refreshContext">重新偵測</button></div>
+          <div class="context-grid">
+            <article><small>目前頻道</small><strong id="channelContext">尚未偵測</strong><em id="channelProfileState">未建立 Profile</em><div><button id="saveChannelProfile">儲存目前設定</button><button id="removeChannelProfile">刪除</button></div></article>
+            <article><small>目前播放清單</small><strong id="playlistContext">無</strong><em id="playlistProfileState">未建立 Profile</em><div><button id="savePlaylistProfile">儲存目前設定</button><button id="removePlaylistProfile">刪除</button></div></article>
+          </div>
+        </div>
+        <div class="card"><div class="card-head"><div><h2>已儲存 Profiles</h2><p>可直接清理不再使用的頻道或播放清單設定。</p></div></div><div id="profileList" class="profile-list"></div></div>
+      </section>
+
+      <section class="page" data-page="overlay">
+        <div class="card"><div class="card-head"><div><h2>懸浮控制器</h2><p>控制顯示、Hover 收合、主題與透明度。</p></div></div>
+          <div class="toggle-list">
+            <label><span><b>顯示懸浮控制器</b><small>可拖曳並記住位置</small></span><input id="floatingEnabled" type="checkbox" /></label>
+            <label><span><b>滑鼠懸停才展開</b><small>收合時保留 S / youtube-speed-studio / 模式 / 快捷鍵 / 倍速</small></span><input id="hoverExpand" type="checkbox" /></label>
+            <label><span><b>搜尋頁隱藏懸浮窗</b><small>YouTube /results 不顯示</small></span><input id="hideFloatingOnSearch" type="checkbox" /></label>
+            <label><span><b>顯示快速倍速</b><small>完整懸浮窗顯示 Preset</small></span><input id="showPresets" type="checkbox" /></label>
+            <label><span><b>啟動時收合</b><small>Hover 模式關閉時使用</small></span><input id="compactOnStart" type="checkbox" /></label>
+          </div>
+          <div class="setting-grid overlay-grid">
+            <label class="select-setting"><span>主題<small>可跟隨目前影片網站</small></span><select id="themeMode"><option value="auto">跟隨目前網站</option><option value="dark">固定黑色</option><option value="light">固定白色</option><option value="graphite">石墨灰</option><option value="midnight">午夜藍</option><option value="warm">暖色紙張</option></select></label>
+            <label class="opacity-setting"><span>透明度<small>預設 90；可拖曳滑桿或直接輸入 0–100</small></span><div class="opacity-controls"><input id="panelOpacity" type="range" min="0" max="100" step="1" aria-label="懸浮窗透明度滑桿" /><div class="opacity-number"><input id="panelOpacityNumber" type="text" inputmode="numeric" autocomplete="off" role="spinbutton" aria-valuemin="0" aria-valuemax="100" aria-label="懸浮窗透明度百分比" /><span>%</span></div><output id="opacityValue" class="visually-hidden">90%</output></div></label>
+          </div>
+          <button id="resetPosition" class="secondary-btn">重設懸浮窗位置</button>
+        </div>
+      </section>
+
+      <section class="page" data-page="downloads">
+        <div class="download-hero">
+          <div>
+            <span class="eyebrow">YOUTUBE DOWNLOAD STUDIO</span>
+            <h2>看得懂「有什麼」也看得懂「為什麼不能下載」</h2>
+            <p>不再把 240p 當成影片最高畫質。播放器可選、player response 有宣告、已解析媒體 URL、最終可輸出 MP4，四層狀態會分開顯示。</p>
+          </div>
+          <span id="downloadModeBadge" class="safe-badge">LOCAL MP4</span>
+        </div>
+
+        <div class="card download-card">
+          <div class="download-video-card">
+            <div class="download-video-copy">
+              <small id="downloadProviderStatus">目前來源 · YouTube</small>
+              <strong id="downloadTitle">尚未掃描</strong>
+              <span id="downloadMeta">保持一個已載入此版本的 YouTube 影片分頁，再按「重新掃描」。</span>
+            </div>
+            <button id="scanDownloads" class="primary-outline-btn" type="button">重新掃描</button>
+          </div>
+
+          <div class="quality-summary" aria-live="polite">
+            <article><small>播放器可選最高</small><strong id="downloadNativeMax">—</strong><span>Native</span></article>
+            <article><small>格式資料最高</small><strong id="downloadAdvertisedMax">—</strong><span>Advertised</span></article>
+            <article class="accent"><small>目前可下載最高</small><strong id="downloadResolvedMax">—</strong><span>MP4</span></article>
+            <article><small>解析狀態</small><strong id="downloadCoverageState">待掃描</strong><span id="downloadFallbackStatus">Resolver</span></article>
+          </div>
+
+          <div class="download-section-head">
+            <div><h3>畫質可用性</h3><p>即使某畫質尚未能輸出 MP4，也會保留在這裡並標示原因。</p></div>
+          </div>
+          <div id="downloadQualityMatrix" class="quality-matrix"><div class="quality-empty">尚未掃描影片。</div></div>
+
+          <div class="download-section-head choices-head">
+            <div><h3>可下載 MP4</h3><p>選擇單檔直載，或 Video + AAC 在本機合併。</p></div>
+          </div>
+          <select id="downloadQuality" class="visually-hidden" aria-label="目前選取的下載畫質"><option value="">尚未掃描</option></select>
+          <div id="downloadChoiceList" class="download-choice-list"><div class="quality-empty">尚未找到可下載選項。</div></div>
+
+          <div class="download-selection-panel">
+            <div id="downloadChoiceDetail" class="choice-detail">選取一個可下載畫質後，這裡會顯示 codec、模式、大小與記憶體風險。</div>
+            <div class="download-actions"><button id="downloadMp4" class="primary-btn" type="button" disabled>下載選取的 MP4</button><button id="cancelDownload" class="cancel-btn" type="button" disabled>取消工作</button></div>
+          </div>
+
+          <div class="memory-guard">
+            <div><b>大檔案記憶體防護</b><small id="downloadMemoryLimit">正在估算安全上限…</small></div>
+            <p>Progressive 由 Chrome 直接寫入檔案；Adaptive 才會把 Video / Audio 送進本機 mux。超過裝置估算上限時會在下載前或串流途中中止。</p>
+          </div>
+
+          <div class="download-progress-panel" aria-live="polite">
+            <div class="progress-head"><div><small>工作狀態</small><strong id="downloadJobStatus">等待下載</strong></div><span id="downloadStage">IDLE</span></div>
+            <div class="progress-row"><div><span>影像 Video</span><output id="videoProgressText">0%</output></div><progress id="videoProgress" max="1" value="0"></progress></div>
+            <div class="progress-row"><div><span>音訊 Audio</span><output id="audioProgressText">0%</output></div><progress id="audioProgress" max="1" value="0"></progress></div>
+            <div class="progress-row"><div><span>本機合併 Mux</span><output id="muxProgressText">0%</output></div><progress id="muxProgress" max="1" value="0"></progress></div>
+            <div class="progress-row"><div><span>檔案完成 Finalizing</span><output id="finalizeProgressText">0%</output></div><progress id="finalizeProgress" max="1" value="0"></progress></div>
+          </div>
+
+          <div id="downloadHint" class="download-notice">媒體 signed URL 只存在目前頁面與 Download Studio 記憶體；掃描逾時、下載完成、取消或離頁就清除，不寫入 storage、診斷 JSON、專案資料或 log。</div>
+
+          <div class="download-preferences">
+            <label class="preference-row"><span><b>每次詢問儲存位置</b><small>關閉時使用 Chrome 預設下載資料夾</small></span><input id="downloadSaveAs" type="checkbox" /></label>
+            <label class="preference-row"><span><b>預設畫質</b><small>掃描完成後自動選擇</small></span><select id="downloadDefaultQuality"><option value="best">最高可下載畫質</option><option value="smallest">最小檔案 / 最低畫質</option></select></label>
+          </div>
+          <button id="nativeDownload" class="text-link" type="button">改用 YouTube 官方離線下載</button>
+        </div>
+      </section>
+
+      <section class="page" data-page="diagnostics">
+        <div class="card"><div class="card-head"><div><h2>診斷</h2><p>診斷匯出不包含直接 MP4 媒體 URL。</p></div></div>
+          <div class="toggle-list"><label><span><b>懸浮窗顯示 Debug</b><small>顯示 resolver、Profile、暫時狀態與套用來源</small></span><input id="diagnosticsEnabled" type="checkbox" /></label></div>
+          <pre id="diagnosticsText">尚無診斷資料</pre>
+          <div class="action-row"><button id="exportDiagnostics" class="secondary-btn">匯出診斷 JSON</button><button id="exportSettings" class="secondary-btn">匯出設定 JSON</button><label class="file-button">匯入設定 JSON<input id="importSettings" type="file" accept="application/json,.json" /></label></div>
+        </div>
+        <div class="danger-zone-separator"><span>DANGER ZONE</span></div>
+        <div class="card danger-card"><div><h2>重設</h2><p>這是重大操作。按下後會先要求確認，再要求輸入確認文字；不會直接執行。</p></div><button id="resetAll" class="danger-btn">恢復全部預設值</button></div>
+      </section>
+
+      <section class="page" data-page="appearance">
+        <div class="card"><div class="card-head"><div><h2>外觀與語言</h2><p>所有下拉選單與彈窗使用 youtube-speed-studio 自製元件，不使用瀏覽器原生選單視覺。</p></div><span class="platform-badge">CUSTOM UI</span></div>
+          <div class="setting-grid appearance-grid">
+            <label class="select-setting"><span>語言<small>可搜尋；繁中、簡中、英文完整內建，其餘語言使用英文回退。</small></span><select id="uiLanguage" data-searchable="true" data-search-placeholder="搜尋語言 / Search language"></select></label>
+            <div class="setting palette-setting"><span>強調色<small>按鈕、Focus、Badge 與品牌亮色</small></span><div id="accentPalette" class="swatch-grid" role="radiogroup" aria-label="強調色"></div></div>
+          </div>
+          <div class="background-section"><div><b>背景風格</b><small>不只黑／白；可選石墨、午夜、暖紙等背景。</small></div><div id="backgroundPalette" class="theme-card-grid"></div></div>
+        </div>
+        <div class="card update-card"><div class="card-head"><div><h2>更新</h2><p>GitHub 版本不做不可靠的靜默覆蓋；會定期檢查官方 Releases，顯示更新 Badge 與官方連結。</p></div><span id="updateBadge" class="safe-badge">CHECK</span></div><div class="runtime-box"><div><small>官方版本</small><strong id="updateStatus">尚未檢查</strong></div><button id="checkUpdate" type="button">檢查更新</button></div><button id="openOfficialRelease" class="primary-outline-btn" type="button">前往官方 Release</button></div>
+        <div class="card integrity-card"><div class="card-head"><div><h2>完整性驗證</h2><p>官方 Build 使用 SHA-256 檔案清單與 Build Fingerprint 做防偽。這是 tamper-evident 驗證，不宣稱瀏覽器端程式能技術上絕對禁止修改。</p></div><span id="integrityBadge" class="safe-badge">VERIFY</span></div><div class="fingerprint-box"><small>Build Fingerprint</small><code id="buildFingerprint">等待驗證</code></div><button id="verifyIntegrity" class="secondary-btn" type="button">驗證官方 Build</button></div>
+      </section>
+    </main>
+  </div>
+  <script src="runtime-client.js"></script>
+  <script src="i18n.js"></script>
+  <script src="ui-components.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

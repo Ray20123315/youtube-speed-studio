@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>youtube-speed-studio</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body data-theme="dark">
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><div class="logo">S</div><div><h1>youtube-speed-studio</h1><p>YouTube · bilibili 快速播放控制</p></div></div>
+      <label class="switch" title="啟用擴充功能"><input id="enabled" type="checkbox" /><span></span></label>
+    </header>
+
+    <section class="hero-card">
+      <div class="mode-card general">
+        <div class="mode-label">一般影片</div>
+        <div class="number-control speed-control" data-control="generalSpeed">
+          <button type="button" class="step-button" data-step="-1" aria-label="一般影片減速">−</button>
+          <label class="number-display"><input id="generalSpeed" type="text" inputmode="decimal" autocomplete="off" role="spinbutton" aria-label="一般影片倍速" /><span>×</span></label>
+          <button type="button" class="step-button" data-step="1" aria-label="一般影片加速">+</button>
+        </div>
+      </div>
+      <div class="mode-card shorts">
+        <div class="mode-label">Shorts</div>
+        <div class="number-control speed-control" data-control="shortsSpeed">
+          <button type="button" class="step-button" data-step="-1" aria-label="Shorts 減速">−</button>
+          <label class="number-display"><input id="shortsSpeed" type="text" inputmode="decimal" autocomplete="off" role="spinbutton" aria-label="Shorts 倍速" /><span>×</span></label>
+          <button type="button" class="step-button" data-step="1" aria-label="Shorts 加速">+</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section compact-section">
+      <div class="section-title">常用控制</div>
+      <div class="quick-grid">
+        <label class="quick-toggle"><span>鎖定倍速<small>防止播放器改回</small></span><input id="lockSpeed" type="checkbox" /></label>
+        <label class="quick-toggle"><span>懸浮控制<small>顯示 youtube-speed-studio</small></span><input id="floatingEnabled" type="checkbox" /></label>
+        <label class="quick-toggle"><span>Hover 展開<small>移入顯示完整控制</small></span><input id="hoverExpand" type="checkbox" /></label>
+        <label class="quick-toggle"><span>智慧 Profile<small>YouTube 頻道 / 清單</small></span><input id="profilesEnabled" type="checkbox" /></label>
+      </div>
+      <div class="mini-setting-row">
+        <span><b>Boost 倍速</b><small>按住快捷鍵時</small></span>
+        <div class="number-control small-control" data-control="boostSpeed" data-fixed-step="0.25">
+          <button type="button" class="step-button" data-step="-1">−</button>
+          <label class="number-display"><input id="boostSpeed" type="text" inputmode="decimal" autocomplete="off" role="spinbutton" /><span>×</span></label>
+          <button type="button" class="step-button" data-step="1">+</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section downloader-card">
+      <div class="section-head"><div><div class="section-title">YouTube Download Studio</div><p>畫質可用性、adaptive Video + Audio、本機 MP4 合併、進度與取消集中在完整頁面。</p></div><span class="studio-badge">MP4</span></div>
+      <button id="openDownloadStudio" class="studio-open-btn" type="button"><span>開啟 Download Studio</span><small>播放器畫質對照 · Adaptive local mux</small><b>→</b></button>
+      <div class="hint-line">Popup 不再直接持有或顯示媒體 URL；掃描與下載只在 Download Studio 執行。</div>
+    </section>
+
+    <div class="options-cta"><button id="openOptions" type="button"><span>完整設定</span><small>播放 · 快捷鍵 · Profile · 懸浮窗 · 下載 · 診斷</small><b>→</b></button></div>
+
+    <button id="updateBanner" class="update-banner" type="button" hidden><b>Update available</b><span id="updateBannerText">Official release</span><i>→</i></button>
+
+    <footer>
+      <div><span id="status">設定會自動儲存</span><small id="runtimeStatus">正在連線目前影片分頁…</small></div>
+      <div class="footer-badges"><span class="official-build-badge" id="officialBadge">VERIFY</span><span class="version-badge" id="versionBadge">v1.0.0</span></div>
+    </footer>
+  </main>
+  <script src="runtime-client.js"></script>
+  <script src="i18n.js"></script>
+  <script src="ui-components.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

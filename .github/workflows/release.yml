@@ -1,0 +1,36 @@
+name: Release 1.0.0
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  verify-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify extension metadata
+        run: |
+          python -m json.tool manifest.json >/dev/null
+          test "$(python -c 'import json;print(json.load(open("manifest.json"))["version"])')" = "1.0.0"
+          python scripts/generate_integrity.py
+          git diff --exit-code -- integrity.json
+      - name: Build release package
+        run: python scripts/build_release.py
+      - name: Create official GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            echo "v1.0.0 release already exists; keeping immutable first release."
+            exit 0
+          fi
+          gh release create v1.0.0 \
+            dist/youtube-speed-studio_1.0.0.zip \
+            dist/youtube-speed-studio_1.0.0.zip.sha256 \
+            --target "$GITHUB_SHA" \
+            --title "youtube-speed-studio 1.0.0" \
+            --notes-file RELEASE_NOTES.md

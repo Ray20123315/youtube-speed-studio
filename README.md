@@ -48,7 +48,7 @@ Profile 保存一般/Shorts 倍速、Boost、速度鎖定與原音調設定。
 - 简体中文 `zh-Hans`
 - English `en`
 
-語言搜尋器另外列出日文、韓文、西班牙文、法文、德文、葡萄牙文、俄文、阿拉伯文、泰文、越南文等常見 locale；尚未完整翻譯的 locale 目前使用英文 fallback。架構已保留新增任意 BCP-47 locale 的能力，而不是假裝未翻譯語言已完整翻譯。
+語言搜尋器內建 70+ 個常見 BCP-47 locale（涵蓋東亞、東南亞、歐洲、中東、南亞與非洲常用語言）；繁體中文、简体中文與 English 為完整 UI 語言，其餘尚未完整翻譯的 locale 明確使用 English fallback。搜尋可同時比對語言名稱與 locale code，後續可持續加入完整翻譯，而不會把 fallback 冒充成完整翻譯。
 
 ### 外觀
 Accent presets：Violet、Blue、Cyan、Green、Amber、Orange、Rose、Magenta。
@@ -125,7 +125,7 @@ Reset 與一般按鈕刻意分開放在 Danger Zone。按下後不會直接重�
 ## License
 Copyright © 2026 **Ray20123315**. All rights reserved.
 
-這不是開源授權。官方未修改 Build 可供使用；修改、衍生、重新包裝、重散布修改版、移除防偽/所有權標示、冒充官方 Build 等行為，除非取得 Ray20123315 書面授權，均不在授權範圍內。完整條款見 [`LICENSE`](LICENSE)。第三方權利見 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+這不是開源授權。官方未修改 Build 僅授權下載、安裝與使用；除必要備份外，任何修改、衍生、重新包裝、鏡像、重新發布、再散布、販售、移除防偽/所有權標示或冒充官方 Build，除非取得 Ray20123315 書面授權，均不在授權範圍內。完整條款見 [`LICENSE`](LICENSE)。第三方權利見 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 ## Release 驗證
 GitHub `main` push 會由 `.github/workflows/release.yml`：
