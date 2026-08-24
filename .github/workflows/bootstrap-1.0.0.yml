@@ -1,0 +1,77 @@
+name: Bootstrap youtube-speed-studio 1.0.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.bootstrap/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct verified source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/chunk.* | base64 -d > /tmp/youtube-speed-studio-source-1.0.0.zip
+          echo 'a72a253bbfb55d1644b2aa0af0899d6d7f0854bc769639670a797c7d114aac75  /tmp/youtube-speed-studio-source-1.0.0.zip' | sha256sum -c -
+          rm -rf /tmp/ytss-source
+          mkdir -p /tmp/ytss-source
+          unzip -q /tmp/youtube-speed-studio-source-1.0.0.zip -d /tmp/ytss-source
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/ytss-source')
+          m=json.loads((root/'manifest.json').read_text())
+          i=json.loads((root/'integrity.json').read_text())
+          assert m['name']=='youtube-speed-studio' and m['version']=='1.0.0'
+          assert i['fingerprint']=='86677a72a82e0064c01dd2fcc0756eb01329f5a231c0047eef732afa57438f71'
+          assert sum(1 for p in root.rglob('*') if p.is_file())==29
+          print('SOURCE_BUNDLE_GATE_PASS')
+          PY
+      - name: Replace bootstrap tree with verified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete --exclude='.git/' /tmp/ytss-source/ ./
+          python scripts/generate_integrity.py .
+          git diff --exit-code -- integrity.json
+          python -m json.tool manifest.json >/dev/null
+          for f in *.js; do node --check "$f" >/dev/null; done
+          git config user.name 'Ray20123315'
+          git config user.email '150588882+Ray20123315@users.noreply.github.com'
+          git add -A
+          git commit -m 'Release youtube-speed-studio 1.0.0'
+          git push origin HEAD:main
+      - name: Build release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/generate_integrity.py .
+          git diff --exit-code -- integrity.json
+          python scripts/build_release.py
+          unzip -t dist/youtube-speed-studio_1.0.0.zip >/dev/null
+          sha256sum -c dist/youtube-speed-studio_1.0.0.zip.sha256
+      - name: Create immutable v1.0.0 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            echo 'v1.0.0 already exists; refusing to overwrite an existing release.' >&2
+            exit 1
+          fi
+          gh release create v1.0.0 \
+            dist/youtube-speed-studio_1.0.0.zip \
+            dist/youtube-speed-studio_1.0.0.zip.sha256 \
+            --target "$(git rev-parse HEAD)" \
+            --title 'youtube-speed-studio 1.0.0' \
+            --notes-file RELEASE_NOTES.md
