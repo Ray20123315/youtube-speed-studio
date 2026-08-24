@@ -1,0 +1,76 @@
+/* Shared accent completion layer for popup, options and injected floating UI. */
+body,
+#ytss-panel {
+  --ytss-accent-soft: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 14%, transparent);
+  --ytss-accent-soft-2: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 7%, transparent);
+  --ytss-accent-border: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 42%, transparent);
+  --ytss-accent-shadow: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 28%, transparent);
+}
+
+body[data-accent="violet"] { --accent:#7658ff; --accent2:#9a83ff; --focus:#7658ff3d; }
+body[data-accent="blue"] { --accent:#3478f6; --accent2:#64a2ff; --focus:#3478f63d; }
+body[data-accent="cyan"] { --accent:#00a7c7; --accent2:#54d6e8; --focus:#00a7c73d; }
+body[data-accent="green"] { --accent:#1f9d68; --accent2:#55c998; --focus:#1f9d683d; }
+body[data-accent="amber"] { --accent:#c88713; --accent2:#f0b84e; --focus:#c887133d; }
+body[data-accent="orange"] { --accent:#e66a2c; --accent2:#ff9a58; --focus:#e66a2c3d; }
+body[data-accent="rose"] { --accent:#e04e73; --accent2:#ff86a4; --focus:#e04e733d; }
+body[data-accent="magenta"] { --accent:#b84ad8; --accent2:#e685ff; --focus:#b84ad83d; }
+
+/* Popup: remove legacy hard-coded violet from accent-semantic controls. */
+body .logo { background:linear-gradient(145deg,var(--accent),var(--accent2)); box-shadow:0 9px 24px var(--ytss-accent-shadow); }
+body .switch input:checked + span { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+body .mode-card.general { background:radial-gradient(circle at 20% 0%,var(--ytss-accent-soft),transparent 56%),var(--surface); }
+body .mode-card.general .mode-label,
+body .text-button,
+body #status.saved,
+body .options-cta b,
+body .studio-open-btn b,
+body .update-banner i { color:var(--accent); }
+body .step-button:hover,
+body .options-cta button:hover { border-color:var(--ytss-accent-border); }
+body .options-cta button,
+body .downloader-card { background:linear-gradient(135deg,var(--ytss-accent-soft),var(--ytss-accent-soft-2)),var(--surface); }
+body .studio-badge,
+body .studio-open-btn,
+body .update-banner { border-color:var(--ytss-accent-border); background:linear-gradient(135deg,var(--ytss-accent-soft),var(--ytss-accent-soft-2)); }
+body .studio-badge { color:var(--accent2); }
+body .studio-open-btn:hover { border-color:color-mix(in srgb,var(--accent) 58%,transparent); background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 18%,transparent),var(--ytss-accent-soft-2)); }
+body .quick-toggle.platform-limited small::after { color:var(--accent2); }
+
+/* Options: brand, selected navigation, focus states, runtime/profile accents and download status. */
+body .side-brand .logo { background:linear-gradient(145deg,var(--accent),var(--accent2)); box-shadow:0 10px 26px var(--ytss-accent-shadow); }
+body .nav-item.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 9px 24px var(--ytss-accent-shadow); }
+body .nav-item.active span { color:color-mix(in srgb,#fff 82%,var(--accent2)); }
+body .page-header p,
+body .feature-card.general > span,
+body .context-grid em,
+body .profile-item > span,
+body .text-link { color:var(--accent2); }
+body .feature-card.general { background:radial-gradient(circle at 10% 0%,var(--ytss-accent-soft),transparent 58%),var(--surface); }
+body .number-control button:hover,
+body .key-capture.capturing { border-color:var(--ytss-accent-border); }
+body .key-capture.capturing { box-shadow:0 0 0 2px var(--focus); }
+body .safe-badge:not(.warn):not(.failed) { border-color:var(--ytss-accent-border); background:var(--ytss-accent-soft-2); color:var(--accent2); }
+body .memory-guard { border-color:var(--ytss-accent-border); background:var(--ytss-accent-soft-2); }
+body .progress-head > span { color:var(--accent2); border-color:var(--ytss-accent-border); }
+body .progress-row:nth-of-type(2) progress { color:var(--accent); }
+body .platform-badge,
+body .primary-outline-btn { border-color:var(--ytss-accent-border); color:var(--accent2); }
+body .primary-outline-btn:hover { background:var(--ytss-accent-soft); }
+
+/* Floating controller: settings already publish panel.dataset.accent; map every preset to variables. */
+#ytss-panel[data-accent="violet"] { --ytss-accent:#7658ff; --ytss-accent-2:#9a83ff; }
+#ytss-panel[data-accent="blue"] { --ytss-accent:#3478f6; --ytss-accent-2:#64a2ff; }
+#ytss-panel[data-accent="cyan"] { --ytss-accent:#00a7c7; --ytss-accent-2:#54d6e8; }
+#ytss-panel[data-accent="green"] { --ytss-accent:#1f9d68; --ytss-accent-2:#55c998; }
+#ytss-panel[data-accent="amber"] { --ytss-accent:#c88713; --ytss-accent-2:#f0b84e; }
+#ytss-panel[data-accent="orange"] { --ytss-accent:#e66a2c; --ytss-accent-2:#ff9a58; }
+#ytss-panel[data-accent="rose"] { --ytss-accent:#e04e73; --ytss-accent-2:#ff86a4; }
+#ytss-panel[data-accent="magenta"] { --ytss-accent:#b84ad8; --ytss-accent-2:#e685ff; }
+#ytss-panel { --ytss-card-active:color-mix(in srgb,var(--ytss-accent) 72%,transparent); }
+#ytss-panel .ytss-logo,
+#ytss-panel .ytss-hover-logo { background:linear-gradient(145deg,var(--ytss-accent-2),var(--ytss-accent)); box-shadow:0 7px 18px color-mix(in srgb,var(--ytss-accent) 30%,transparent),inset 0 1px rgba(255,255,255,.22); }
+#ytss-panel .ytss-mode-general { color:var(--ytss-accent-2); }
+#ytss-panel.ytss-one-x-active .ytss-speed-display { border-color:color-mix(in srgb,var(--ytss-accent-2) 58%,transparent); }
+#ytss-panel.ytss-one-x-active .ytss-hover-speed { box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ytss-accent-2) 58%,transparent); }
+#ytss-panel .ytss-preset.active { border-color:color-mix(in srgb,var(--ytss-accent) 78%,transparent); }

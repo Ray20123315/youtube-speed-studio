@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import hashlib,zipfile,sys
+import hashlib,json,zipfile
 root=Path(__file__).resolve().parents[1]
+version=json.loads((root/'manifest.json').read_text(encoding='utf-8'))['version']
 outdir=root/'dist'; outdir.mkdir(exist_ok=True)
-name='youtube-speed-studio_1.0.0.zip'; out=outdir/name
+name=f'youtube-speed-studio_{version}.zip'; out=outdir/name
 exclude_prefixes=('.git/','.github/','scripts/','dist/')
 exclude_names={'PROJECT_DATA.md'}
 files=[]

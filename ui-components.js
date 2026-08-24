@@ -1,6 +1,19 @@
 (() => {
   'use strict';
   if (globalThis.YTSSUI) return;
+
+  function ensureSharedAccentTheme() {
+    if (!document?.head || document.querySelector('link[data-ytss-accent-theme="1"]')) return;
+    try {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = chrome.runtime.getURL('accent-theme.css');
+      link.dataset.ytssAccentTheme = '1';
+      document.head.appendChild(link);
+    } catch {}
+  }
+  ensureSharedAccentTheme();
+
   const closeFns = new Set();
   const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   function enhanceSelect(select) {

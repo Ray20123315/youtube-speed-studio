@@ -1,6 +1,6 @@
 # youtube-speed-studio
 
-`youtube-speed-studio` 是 Ray20123315 製作的 Chrome / Edge Manifest V3 影片播放控制與 YouTube Download Studio 擴充功能。正式公開版從 **1.0.0** 開始。
+`youtube-speed-studio` 是 Ray20123315 製作的 Chrome / Edge Manifest V3 影片播放控制與 YouTube Download Studio 擴充功能。正式公開版從 **1.0.0** 開始，目前版本為 **1.0.1**。
 
 官方來源：`Ray20123315/youtube-speed-studio`。如果你取得的檔案不是來自官方 GitHub repository / Releases，請使用 Options → 外觀與語言 → 完整性驗證檢查 Build Fingerprint。
 
@@ -53,18 +53,20 @@ Profile 保存一般/Shorts 倍速、Boost、速度鎖定與原音調設定。
 ### 外觀
 Accent presets：Violet、Blue、Cyan、Green、Amber、Orange、Rose、Magenta。
 
+1.0.1 起，品牌圖示、選取/Focus 狀態、Badge、Download Studio 的 accent surface 與影片頁懸浮控制器都共用同一套 accent token；Shorts、Danger、錯誤等語意色仍保留獨立顏色。
+
 Background presets：Follow site、Dark、Light、Graphite、Midnight、Warm。
 
 透明度為 `0–100`，預設 `90`，支援自製滑桿與直接輸入數字並雙向同步。
 
 ## Runtime 自我修復
-擴充更新或重新載入後，已開啟的 YouTube/bilibili 分頁可能沒有新版本 content runtime。1.0.0 的 Popup/Options 會：
-1. 先對分頁做 `YTSS_GET_RUNTIME` handshake。
-2. 若沒有 receiving end，使用 `chrome.scripting` 對受支援分頁補注入 MAIN-world bridge、Provider、content runtime 與 CSS。
-3. 重新 handshake。
-4. 分開顯示「runtime 未存在」「runtime 已連線但不是影片頁」「影片頁已連線」「版本過舊」。
+擴充更新或重新載入後，已開啟的 YouTube/bilibili 分頁可能仍保留舊 content script，但舊 script 已失去 extension context。1.0.1 的 Popup/Options 會：
+1. 先對分頁做 `YTSS_GET_RUNTIME` handshake，並用較長的 polling 等待仍在初始化中的新 runtime。
+2. 若沒有 receiving end，使用 `chrome.scripting` 對受支援分頁補注入 MAIN-world bridge、短暫 `runtime-recovery.js`、Provider、content runtime 與 CSS。
+3. `runtime-recovery.js` 先提供可用 handshake / Download Studio bridge；完整 `content.js` 啟動並發布 runtime 狀態後，自動卸下 recovery listener。
+4. 重新確認 protocol / extension version，並分開顯示「runtime 未存在」「runtime 已連線但不是影片頁」「影片頁已連線」「版本過舊」。
 
-因此不再把所有情況統一顯示成「未連線」。
+因此更新未封裝擴充後，不應再需要為了恢復 runtime 強制重新載入已開啟的 YouTube 影片頁。
 
 ## 更新提醒
 GitHub/未封裝版本不能可靠地像 Chrome Web Store 一樣靜默自我覆蓋。本專案採安全的提醒策略：
@@ -74,7 +76,7 @@ GitHub/未封裝版本不能可靠地像 Chrome Web Store 一樣靜默自我覆�
 - 使用者自行下載官方 Release 後更新。
 
 ## 官方 Build / 防偽
-1.0.0 包含 `integrity.json`：
+1.0.1 包含 `integrity.json`：
 - 關鍵 extension files 的 SHA-256。
 - Build Fingerprint。
 - 官方 owner/repository/version metadata。
@@ -84,7 +86,7 @@ Background service worker 可重新讀取 extension 自身檔案並核對 SHA-25
 **重要限制：**瀏覽器端 JavaScript 無法在技術上做到「任何人絕對無法修改」。攻擊者若能任意改整個擴充，也能嘗試移除驗證器。因此本功能是 tamper-evident 防偽與官方 Build 辨識，不是不可破解 DRM。法律上的修改/重散布限制由 `LICENSE` 控制。
 
 ## 權限
-Manifest 1.0.0：
+Manifest 1.0.1：
 - `storage`：保存設定/Profile/位置/更新與完整性狀態。
 - `downloads`：輸出下載檔。
 - `scripting`：更新/重新載入後自動補注入 runtime。
@@ -99,7 +101,7 @@ Host permissions：
 ## 安裝
 ### GitHub Release
 1. 到官方 repository 的 **Releases**。
-2. 下載 `youtube-speed-studio_1.0.0.zip` 與 `.sha256`。
+2. 下載目前版本的 `youtube-speed-studio_<version>.zip` 與同名 `.sha256`。
 3. 驗證 SHA-256。
 4. 解壓 ZIP。
 5. Chrome/Edge 開啟 Extensions 頁面。
@@ -129,8 +131,8 @@ Copyright © 2026 **Ray20123315**. All rights reserved.
 
 ## Release 驗證
 GitHub `main` push 會由 `.github/workflows/release.yml`：
-1. 驗證 `manifest.json` 版本 1.0.0。
+1. 讀取並驗證 `manifest.json` 目前版本。
 2. 重新產生 integrity manifest 並確認沒有 drift。
-3. 打包 extension ZIP。
+3. 依版本號打包 extension ZIP。
 4. 計算 SHA-256。
-5. 建立不可覆蓋的 `v1.0.0` GitHub Release。
+5. 若同版 tag 尚未存在，建立不可覆蓋的 `v<version>` GitHub Release；已發布版本保持 immutable。
