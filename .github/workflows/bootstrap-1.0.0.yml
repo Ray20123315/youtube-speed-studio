@@ -10,37 +10,40 @@ permissions:
   contents: write
 
 jobs:
-  publish:
+  publish-source:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Reconstruct verified source bundle
+      - name: Reconstruct verified source
         shell: bash
         run: |
           set -euo pipefail
-          cat .bootstrap/chunk.* | base64 -d > /tmp/youtube-speed-studio-source-1.0.0.zip
-          echo 'a72a253bbfb55d1644b2aa0af0899d6d7f0854bc769639670a797c7d114aac75  /tmp/youtube-speed-studio-source-1.0.0.zip' | sha256sum -c -
-          rm -rf /tmp/ytss-source
-          mkdir -p /tmp/ytss-source
-          unzip -q /tmp/youtube-speed-studio-source-1.0.0.zip -d /tmp/ytss-source
+          cat .bootstrap/seg.* > /tmp/source.b64
+          echo '860c2f32dd9c19f37369301738d2cefd912f31c8e27bfd3e8baf22194bf8b9c1  /tmp/source.b64' | sha256sum -c -
+          base64 -d /tmp/source.b64 > /tmp/source.tar.xz
+          echo '51d6edc6e11eb75ac31bc922079d107e9355d528a0d16fa54e37aaa54beb35d3  /tmp/source.tar.xz' | sha256sum -c -
+          rm -rf /tmp/source
+          mkdir -p /tmp/source
+          tar -xJf /tmp/source.tar.xz -C /tmp/source
           python - <<'PY'
           import json
           from pathlib import Path
-          root=Path('/tmp/ytss-source')
-          m=json.loads((root/'manifest.json').read_text())
-          i=json.loads((root/'integrity.json').read_text())
-          assert m['name']=='youtube-speed-studio' and m['version']=='1.0.0'
-          assert i['fingerprint']=='86677a72a82e0064c01dd2fcc0756eb01329f5a231c0047eef732afa57438f71'
-          assert sum(1 for p in root.rglob('*') if p.is_file())==29
-          print('SOURCE_BUNDLE_GATE_PASS')
+          root = Path('/tmp/source')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          integrity = json.loads((root / 'integrity.json').read_text())
+          assert manifest['name'] == 'youtube-speed-studio'
+          assert manifest['version'] == '1.0.0'
+          assert integrity['fingerprint'] == '86677a72a82e0064c01dd2fcc0756eb01329f5a231c0047eef732afa57438f71'
+          assert sum(1 for p in root.rglob('*') if p.is_file()) == 29
+          print('SOURCE_GATE_PASS')
           PY
-      - name: Replace bootstrap tree with verified source
+      - name: Publish verified source to main
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a --delete --exclude='.git/' /tmp/ytss-source/ ./
+          rsync -a --delete --exclude='.git/' /tmp/source/ ./
           python scripts/generate_integrity.py .
           git diff --exit-code -- integrity.json
           python -m json.tool manifest.json >/dev/null
@@ -50,28 +53,3 @@ jobs:
           git add -A
           git commit -m 'Release youtube-speed-studio 1.0.0'
           git push origin HEAD:main
-      - name: Build release assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          python scripts/generate_integrity.py .
-          git diff --exit-code -- integrity.json
-          python scripts/build_release.py
-          unzip -t dist/youtube-speed-studio_1.0.0.zip >/dev/null
-          sha256sum -c dist/youtube-speed-studio_1.0.0.zip.sha256
-      - name: Create immutable v1.0.0 release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if gh release view v1.0.0 >/dev/null 2>&1; then
-            echo 'v1.0.0 already exists; refusing to overwrite an existing release.' >&2
-            exit 1
-          fi
-          gh release create v1.0.0 \
-            dist/youtube-speed-studio_1.0.0.zip \
-            dist/youtube-speed-studio_1.0.0.zip.sha256 \
-            --target "$(git rev-parse HEAD)" \
-            --title 'youtube-speed-studio 1.0.0' \
-            --notes-file RELEASE_NOTES.md
