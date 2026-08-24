@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib,json
 root=Path(__file__).resolve().parents[1]
+version=json.loads((root/'manifest.json').read_text(encoding='utf-8'))['version']
 exclude_prefixes=('.git/','.github/','scripts/','dist/')
 exclude_names={'PROJECT_DATA.md','integrity.json'}
 files=[]
@@ -14,12 +15,12 @@ entries=[]
 for rel in files:
     p=root/rel
     entries.append({'path':rel,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'size':p.stat().st_size})
-canonical=json.dumps({'owner':'Ray20123315','repository':'Ray20123315/youtube-speed-studio','version':'1.0.0','files':entries},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+canonical=json.dumps({'owner':'Ray20123315','repository':'Ray20123315/youtube-speed-studio','version':version,'files':entries},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
 fingerprint=hashlib.sha256(canonical).hexdigest()
 payload={
  'schemaVersion':1,
  'product':'youtube-speed-studio',
- 'version':'1.0.0',
+ 'version':version,
  'owner':'Ray20123315',
  'repository':'Ray20123315/youtube-speed-studio',
  'officialSource':'https://github.com/Ray20123315/youtube-speed-studio',
