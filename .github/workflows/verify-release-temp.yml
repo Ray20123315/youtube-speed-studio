@@ -1,21 +1,17 @@
 name: Verify v1.0.0 release assets
 
 on:
-  push:
-    branches: [verify-v1.0.0-release]
-    paths:
-      - '.github/workflows/verify-release-temp.yml'
+  pull_request:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Verify official release and assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -33,41 +29,25 @@ jobs:
           from pathlib import Path
           d=Path('/tmp/ytss-release')
           meta=json.loads((d/'meta.json').read_text())
-          names={a['name'] for a in meta.get('assets',[])}
+          names=sorted(a['name'] for a in meta.get('assets',[]))
           required={'youtube-speed-studio_1.0.0.zip','youtube-speed-studio_1.0.0.zip.sha256'}
           assert meta['tagName']=='v1.0.0'
           assert not meta['isDraft'] and not meta['isPrerelease']
-          assert required <= names
+          assert required <= set(names)
           z=d/'youtube-speed-studio_1.0.0.zip'
           with zipfile.ZipFile(z) as f:
               files=sorted(x.filename for x in f.infolist() if not x.is_dir())
-              assert 'manifest.json' in files and 'integrity.json' in files
               manifest=json.loads(f.read('manifest.json'))
               integ=json.loads(f.read('integrity.json'))
-              assert manifest['name']=='youtube-speed-studio' and manifest['version']=='1.0.0'
-              assert integ['fingerprint']=='86677a72a82e0064c01dd2fcc0756eb01329f5a231c0047eef732afa57438f71'
-          out={
-              'verified': True,
-              'tag': meta['tagName'],
-              'targetCommitish': meta['targetCommitish'],
-              'releaseUrl': meta['url'],
-              'publishedAt': meta['publishedAt'],
-              'isDraft': meta['isDraft'],
-              'isPrerelease': meta['isPrerelease'],
-              'assetNames': sorted(names),
-              'zipSha256': hashlib.sha256(z.read_bytes()).hexdigest(),
-              'shaFile': (d/'youtube-speed-studio_1.0.0.zip.sha256').read_text().strip(),
-              'zipFileCount': len(files),
-              'fingerprint': integ['fingerprint']
-          }
-          Path('$GITHUB_WORKSPACE/RELEASE_VERIFY_1.0.0.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n')
+          assert manifest['name']=='youtube-speed-studio' and manifest['version']=='1.0.0'
+          assert integ['fingerprint']=='86677a72a82e0064c01dd2fcc0756eb01329f5a231c0047eef732afa57438f71'
+          print('RELEASE_VERIFY_PASS')
+          print('TAG',meta['tagName'])
+          print('TARGET',meta['targetCommitish'])
+          print('URL',meta['url'])
+          print('PUBLISHED',meta['publishedAt'])
+          print('ASSETS',','.join(names))
+          print('ZIP_SHA256',hashlib.sha256(z.read_bytes()).hexdigest())
+          print('ZIP_FILES',len(files))
+          print('FINGERPRINT',integ['fingerprint'])
           PY
-      - name: Commit verification evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'Ray20123315'
-          git config user.email '150588882+Ray20123315@users.noreply.github.com'
-          git add RELEASE_VERIFY_1.0.0.json
-          git commit -m 'Verify v1.0.0 release assets'
-          git push origin HEAD:verify-v1.0.0-release
