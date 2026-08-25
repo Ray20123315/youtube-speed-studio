@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "product": "youtube-speed-studio",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "owner": "Ray20123315",
   "repository": "Ray20123315/youtube-speed-studio",
   "officialSource": "https://github.com/Ray20123315/youtube-speed-studio",
   "license": "LicenseRef-youtube-speed-studio-Proprietary-1.0",
-  "fingerprint": "822ce896a200403f3d194a40742499b190ee3bcf6c27a3bf623992467a406b46",
+  "fingerprint": "5d364c418e6b6ae336cc347d6db89924f606c0b4e91d5ecdd776305c5372c6b3",
   "algorithm": "SHA-256",
   "note": "Tamper-evident official-build manifest. Client-side verification cannot technically prevent a determined party from modifying code; the proprietary license controls permitted use, modification, and redistribution.",
   "files": [
@@ -17,13 +17,13 @@
     },
     {
       "path": "README.md",
-      "sha256": "f56a5482ac53d18a2a3d20d0410d0dfbeeb0fb7500021df14866e244ce379be5",
-      "size": 7822
+      "sha256": "d777ff44afbe1a37b1bf7667cb80fe175a39635b833bb3a9320233f28e9ab4d1",
+      "size": 8376
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "b9eb25cc40b25c0951ec5cae2ad589995b684d5b64d828d4fd8b7f504abe4ee7",
-      "size": 1105
+      "sha256": "bd6a80ef369740f8f180d68cc9a3b7d4245440824f5beef4057ac8879fb05223",
+      "size": 1212
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -72,8 +72,8 @@
     },
     {
       "path": "manifest.json",
-      "sha256": "b11861e5121e5bf858717023bc33635c8d50700d972a4e68b210fa12368bd016",
-      "size": 1359
+      "sha256": "58d5070320298aa8a6572f07d35ebef6a632baa674d15085c75ca2230cc26c31",
+      "size": 1390
     },
     {
       "path": "mp4-remux-worker.js",
@@ -117,8 +117,8 @@
     },
     {
       "path": "popup.js",
-      "sha256": "2fb746418346b585b54a188840e2c3af2d6ff8ce1db22d69c7ae37243dc7cb5d",
-      "size": 8484
+      "sha256": "e65a275dc27f4f67385452f24c784f4a1c79b4a3cadf57a946f8d97d563eb281",
+      "size": 10000
     },
     {
       "path": "providers.js",
@@ -127,18 +127,18 @@
     },
     {
       "path": "runtime-client.js",
-      "sha256": "386f80e21e9e42917da6ce2fe629034e17fb38a39082745adb6de459d704fc28",
-      "size": 5209
+      "sha256": "2bee7197e55c251edb01196631964fc35ce60c7dabdb0b8d4f407f60a6fe809d",
+      "size": 7688
     },
     {
       "path": "runtime-recovery.js",
-      "sha256": "9866ee49bb4c48a283a19c51d601e48b2086eefd0f418ccb5743339e164b8aad",
-      "size": 6893
+      "sha256": "000d0ccabd99dac50626547f26a76fd94ec6ce0f390c8443cb0571021ea120da",
+      "size": 19474
     },
     {
       "path": "ui-components.js",
-      "sha256": "2deabe99aaad94ccd2114620ecc3a1cebe70c67ce6d1698a02f2ac09527f6ae2",
-      "size": 6478
+      "sha256": "995d5f1bd10c1c978d512076484a186e74bd5a4e5eb33decea19b9261266007e",
+      "size": 8676
     }
   ]
 }

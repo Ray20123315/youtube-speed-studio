@@ -17,6 +17,55 @@
   const tabUrl = tab => String(tab?.url || tab?.pendingUrl || '');
   const isSupportedUrl = url => SUPPORTED.some(re => re.test(String(url || '')));
 
+  function sourceIdentity(raw) {
+    try {
+      const url = new URL(String(raw || ''));
+      const host = url.hostname.toLowerCase();
+      const youtube = host === 'youtube.com' || host.endsWith('.youtube.com');
+      const bilibili = host === 'bilibili.com' || host.endsWith('.bilibili.com');
+      if (!youtube && !bilibili) return null;
+      if (youtube) {
+        const videoId = url.pathname === '/watch'
+          ? url.searchParams.get('v')
+          : url.pathname.startsWith('/shorts/') ? url.pathname.split('/')[2] || null : null;
+        return { platform: 'youtube', videoId, href: url.href };
+      }
+      return { platform: 'bilibili', videoId: null, href: url.href };
+    } catch {
+      return null;
+    }
+  }
+
+  function pageSourceHint() {
+    try {
+      if (!location.protocol.startsWith('chrome-extension')) return { tabId: null, url: null };
+      const params = new URLSearchParams(location.search);
+      const rawId = Number(params.get('sourceTabId'));
+      const rawUrl = params.get('sourceUrl');
+      return {
+        tabId: Number.isInteger(rawId) && rawId > 0 ? rawId : null,
+        url: isSupportedUrl(rawUrl) ? rawUrl : null
+      };
+    } catch {
+      return { tabId: null, url: null };
+    }
+  }
+
+  function sourceMatchScore(tab, hint, preferActive) {
+    let score = 0;
+    const url = tabUrl(tab);
+    if (hint.tabId && tab?.id === hint.tabId) score += 10000;
+    if (hint.url && url === hint.url) score += 5000;
+    if (hint.url && url) {
+      const expected = sourceIdentity(hint.url);
+      const actual = sourceIdentity(url);
+      if (expected?.platform && expected.platform === actual?.platform) score += 500;
+      if (expected?.videoId && expected.videoId === actual?.videoId) score += 3500;
+    }
+    if (preferActive && tab?.active) score += 100;
+    return score;
+  }
+
   async function probe(tabId, attempts = 1, intervalMs = 120) {
     let error = null;
     for (let i = 0; i < attempts; i++) {
@@ -72,8 +121,14 @@
     return inject(tab);
   }
 
-  async function supportedTabs() {
+  async function supportedTabs(preferredTabId = null) {
     const seen = new Map();
+    if (preferredTabId) {
+      try {
+        const preferred = await chrome.tabs.get(preferredTabId);
+        if (preferred?.id && isSupportedUrl(tabUrl(preferred))) seen.set(preferred.id, preferred);
+      } catch {}
+    }
     try {
       for (const tab of await chrome.tabs.query({ url: QUERY_PATTERNS })) {
         if (tab?.id && isSupportedUrl(tabUrl(tab))) seen.set(tab.id, tab);
@@ -89,10 +144,21 @@
     return [...seen.values()];
   }
 
-  async function discover({ platform = null, requireVideo = false, preferActive = true } = {}) {
-    const tabs = await supportedTabs();
+  async function discover({
+    platform = null,
+    requireVideo = false,
+    preferActive = true,
+    preferredTabId = null,
+    preferredUrl = null
+  } = {}) {
+    const pageHint = pageSourceHint();
+    const hint = {
+      tabId: Number.isInteger(preferredTabId) && preferredTabId > 0 ? preferredTabId : pageHint.tabId,
+      url: isSupportedUrl(preferredUrl) ? preferredUrl : pageHint.url
+    };
+    const tabs = await supportedTabs(hint.tabId);
     const ordered = [...tabs].sort((a, b) =>
-      Number(preferActive && b.active) - Number(preferActive && a.active)
+      sourceMatchScore(b, hint, preferActive) - sourceMatchScore(a, hint, preferActive)
       || (b.lastAccessed || 0) - (a.lastAccessed || 0)
     );
     let connected = null;
@@ -117,7 +183,8 @@
         tabId: tab.id,
         response: r,
         reinjected: !!result.reinjected,
-        recoveryBridge: !!r.recoveryBridge
+        recoveryBridge: !!r.recoveryBridge,
+        sourceMatched: sourceMatchScore(tab, hint, false) > 0
       };
       connected ||= candidate;
       const isVideo = r.context?.platform === 'youtube'
@@ -128,7 +195,7 @@
 
     if (connected) return { ok: !requireVideo, kind: 'runtime-only', ...connected };
     if (stale) return { ok: false, kind: 'stale', ...stale };
-    return { ok: false, kind: 'missing', failure: lastFailure };
+    return { ok: false, kind: 'missing', failure: lastFailure, sourceHint: hint };
   }
 
   globalThis.YTSSRuntimeClient = Object.freeze({

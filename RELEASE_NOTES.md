@@ -1,12 +1,13 @@
-# youtube-speed-studio 1.0.1
+# youtube-speed-studio 1.0.2
 
-Runtime recovery and accent consistency bugfix release.
+Download source handoff and floating-controller interaction/viewport bugfix release.
 
 Highlights:
-- Adds a fresh `runtime-recovery.js` bridge for already-open YouTube/bilibili tabs after an extension reload/update, so Popup/Options can recover without requiring a page refresh.
-- Extends handshake polling and supported-tab discovery to avoid falsely reporting a recoverable runtime as disconnected while `content.js` is still initializing.
-- Download Studio can use the temporary recovery bridge while the full content runtime reconnects; signed media URLs remain runtime-only and are consumed/removed from the DOM bridge immediately.
-- Adds a shared `accent-theme.css` layer so accent presets consistently recolor brand, selected/focus states, badges, Download Studio accent surfaces, and the floating controller while preserving semantic Shorts/danger colors.
-- Release and integrity scripts now read the version from `manifest.json`, so future patch releases no longer require hard-coded workflow edits.
+- Popup now carries the originating YouTube `sourceTabId` and ordinary watch/Shorts page URL into Download Studio; runtime discovery prioritizes that exact source before generic tab scanning.
+- Download Studio visibly renders the carried source link so the selected video identity is no longer lost when the Options tab becomes active.
+- `runtime-recovery.js` now takes over stale/orphan floating-controller core controls with the current extension context, avoiding dead buttons after extension reload/update.
+- The recovery layer remains as a lightweight viewport repair after full runtime handoff, clamping the 236px → 290px Hover expansion inside the visible viewport near right/bottom edges.
+- `runtime-recovery.js` is now included in normal content-script startup so viewport repair also applies on fresh page loads, not only emergency reinjection.
+- Signed Googlevideo media URLs remain transient runtime-only data and are still consumed/removed from the DOM bridge immediately.
 
 See README.md for installation, permissions, platform support, limitations and security notes.

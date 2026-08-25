@@ -14,6 +14,49 @@
   }
   ensureSharedAccentTheme();
 
+  function validYoutubeSource(raw) {
+    try {
+      const url = new URL(String(raw || ''));
+      if (url.protocol !== 'https:') return null;
+      const host = url.hostname.toLowerCase();
+      if (!(host === 'youtube.com' || host.endsWith('.youtube.com'))) return null;
+      if (url.pathname !== '/watch' && !url.pathname.startsWith('/shorts/')) return null;
+      const videoId = url.pathname === '/watch' ? url.searchParams.get('v') : url.pathname.split('/')[2] || null;
+      return { url, videoId };
+    } catch {
+      return null;
+    }
+  }
+
+  function renderDownloadSourceHint() {
+    const status = document.getElementById('downloadProviderStatus');
+    if (!status || document.getElementById('ytssDownloadSourceContext')) return;
+    const params = new URLSearchParams(location.search);
+    const source = validYoutubeSource(params.get('sourceUrl'));
+    if (!source) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'ytssDownloadSourceContext';
+    wrap.className = 'ytss-source-context';
+    wrap.style.cssText = 'display:flex;align-items:center;gap:7px;min-width:0;margin-top:1px';
+    const link = document.createElement('a');
+    link.className = 'ytss-source-link';
+    link.style.cssText = 'max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent2);font-size:9px;font-weight:750;text-decoration:none';
+    link.href = source.url.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.title = source.url.href;
+    link.textContent = `來源影片 · ${source.videoId || 'YouTube'}`;
+    const tabId = Number(params.get('sourceTabId'));
+    if (Number.isInteger(tabId) && tabId > 0) {
+      const badge = document.createElement('span');
+      badge.textContent = `TAB ${tabId}`;
+      badge.style.cssText = 'flex:0 0 auto;border:1px solid var(--ytss-accent-border);border-radius:999px;padding:2px 5px;background:var(--ytss-accent-soft-2);color:var(--accent2);font:750 7px/1 ui-monospace,SFMono-Regular,Consolas,monospace';
+      wrap.append(link, badge);
+    } else wrap.append(link);
+    status.insertAdjacentElement('afterend', wrap);
+  }
+  renderDownloadSourceHint();
+
   const closeFns = new Set();
   const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   function enhanceSelect(select) {
@@ -59,5 +102,5 @@
     });
   }
   function toast(message,kind='info'){ let host=document.querySelector('.ytss-toast-host'); if(!host){host=document.createElement('div');host.className='ytss-toast-host';document.body.appendChild(host)} const el=document.createElement('div');el.className=`ytss-toast ${kind}`;el.textContent=message;host.appendChild(el);setTimeout(()=>el.remove(),2600); }
-  globalThis.YTSSUI=Object.freeze({enhanceSelect,enhanceAll,confirmDestructive,toast});
+  globalThis.YTSSUI=Object.freeze({enhanceSelect,enhanceAll,confirmDestructive,toast,renderDownloadSourceHint});
 })();

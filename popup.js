@@ -25,6 +25,15 @@ function normalizeMax(value){ const c=effectiveCeiling(); const n=parseNumber(va
 function rateBounds(){ const min=clamp(parseNumber(settings.minSpeed,.25),.1,effectiveCeiling()); const max=normalizeMax(settings.maxSpeed); return {min,max}; }
 function normalizeRate(value,fallback=1){ const {min,max}=rateBounds(); return roundRate(clamp(parseNumber(value,fallback),min,max)); }
 function sanitizeFilename(value){ return String(value||'YouTube video').replace(/[\\/:*?"<>|\x00-\x1F]/g,' ').replace(/\s+/g,' ').trim().slice(0,140)||'YouTube video'; }
+function tabUrl(tab){ return String(tab?.url||tab?.pendingUrl||''); }
+function isYoutubeVideoUrl(raw){
+  try{
+    const url=new URL(String(raw||''));
+    const host=url.hostname.toLowerCase();
+    if(!(host==='youtube.com'||host.endsWith('.youtube.com'))) return false;
+    return url.pathname==='/watch' || url.pathname.startsWith('/shorts/');
+  }catch{return false;}
+}
 
 function flash(text='已儲存'){
   $('status').textContent=text; $('status').classList.add('saved'); clearTimeout(statusTimer);
@@ -54,10 +63,40 @@ async function queryRuntime(){
   try{
     const [active]=await chrome.tabs.query({active:true,lastFocusedWindow:true}); activeTabId=active?.id??null;
     if(active){const ensured=await YTSSRuntimeClient.ensure(active,{allowInject:true});if(ensured.ok&&ensured.response?.version===EXTENSION_VERSION&&ensured.response?.protocol===RUNTIME_PROTOCOL){const r=ensured.response;const platform=r.context?.platformLabel||r.context?.platform||'影片網站';$('runtimeStatus').textContent=`已連線目前 ${platform} 分頁${ensured.reinjected?' · runtime 已自動修復':''}`;$('profilesEnabled').closest('.quick-toggle')?.classList.toggle('platform-limited',r.context?.platform!=='youtube');return r}}
-    const found=await YTSSRuntimeClient.discover({requireVideo:false,preferActive:false});if(found.response){const platform=found.response.context?.platformLabel||found.response.context?.platform||'影片網站';$('runtimeStatus').textContent=`目前頁無影片 runtime；已找到其他 ${platform} 分頁${found.reinjected?' · 已修復':''}`;return found.response}
+    const found=await YTSSRuntimeClient.discover({requireVideo:false,preferActive:false});if(found.response){activeTabId=found.tabId??activeTabId;const platform=found.response.context?.platformLabel||found.response.context?.platform||'影片網站';$('runtimeStatus').textContent=`目前頁無影片 runtime；已找到其他 ${platform} 分頁${found.reinjected?' · 已修復':''}`;return found.response}
     $('runtimeStatus').textContent='尚未找到支援的影片分頁；開啟 YouTube 或 bilibili 後會自動連線';return null;
   }catch(error){$('runtimeStatus').textContent=`runtime 狀態無法讀取：${error?.message||'unknown error'}`;return null}
 }
+
+async function resolveDownloadSourceTab(){
+  try{
+    const [active]=await chrome.tabs.query({active:true,lastFocusedWindow:true});
+    if(active?.id && isYoutubeVideoUrl(tabUrl(active))) return active;
+  }catch{}
+  if(activeTabId){
+    try{
+      const remembered=await chrome.tabs.get(activeTabId);
+      if(remembered?.id && isYoutubeVideoUrl(tabUrl(remembered))) return remembered;
+    }catch{}
+  }
+  try{
+    const found=await YTSSRuntimeClient.discover({platform:'youtube',requireVideo:true,preferActive:true});
+    if(found?.tab?.id && isYoutubeVideoUrl(tabUrl(found.tab))) return found.tab;
+  }catch{}
+  return null;
+}
+
+async function openDownloadStudio(){
+  const target=new URL(chrome.runtime.getURL('options.html'));
+  const source=await resolveDownloadSourceTab();
+  if(source?.id) target.searchParams.set('sourceTabId',String(source.id));
+  const sourceUrl=tabUrl(source);
+  if(isYoutubeVideoUrl(sourceUrl)) target.searchParams.set('sourceUrl',sourceUrl);
+  target.hash='downloads';
+  await chrome.tabs.create({url:target.href});
+  window.close();
+}
+
 async function load(){
   const stored=await chrome.storage.local.get({...DEFAULTS,ytssLastTheme:'dark',ytssUpdateInfo:null,ytssIntegrityState:null}); settings={...structuredClone(DEFAULTS),...stored};
   settings.panelOpacity=normalizeOpacity(settings.panelOpacity); settings.maxSpeed=normalizeMax(settings.maxSpeed);
@@ -73,7 +112,7 @@ function wire(){
   });
   $('openOptions').addEventListener('click',()=>chrome.runtime.openOptionsPage());
   $('updateBanner').addEventListener('click',()=>chrome.tabs.create({url:'https://github.com/Ray20123315/youtube-speed-studio/releases/latest'}));
-  $('openDownloadStudio').addEventListener('click',()=>{ chrome.tabs.create({url:chrome.runtime.getURL('options.html#downloads')}); window.close(); });
+  $('openDownloadStudio').addEventListener('click',()=>{openDownloadStudio().catch(error=>{$('runtimeStatus').textContent=`Download Studio 無法開啟：${error?.message||String(error)}`;});});
   chrome.storage.onChanged.addListener((changes,area)=>{ if(area!=='local')return; if(changes.ytssLastTheme){document.body.dataset.lastYoutubeTheme=changes.ytssLastTheme.newValue||'dark';applyTheme(changes.ytssLastTheme.newValue);} });
 }
 load().then(()=>{wire();queryRuntime();}).catch(console.error);

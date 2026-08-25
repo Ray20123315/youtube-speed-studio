@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。",
   "permissions": [
     "storage",
@@ -30,6 +30,7 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "runtime-recovery.js",
         "providers.js",
         "content.js"
       ],
