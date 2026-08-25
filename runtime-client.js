@@ -5,7 +5,7 @@
   const SUPPORTED=[/^https:\/\/([\w-]+\.)?youtube\.com\//i,/^https:\/\/([\w-]+\.)?bilibili\.com\//i];
   const QUERY_PATTERNS=['https://youtube.com/*','https://*.youtube.com/*','https://bilibili.com/*','https://*.bilibili.com/*'];
   const SUPPORT_MAIN=['adaptive-resolver-v2-page.js','quality-normalizer-v3-page.js'];
-  const SUPPORT_ISOLATED=['support-bootstrap-v2.js','download-ready-gate.js','adaptive-capture-v2-bridge.js','control-failsafe-v2.js'];
+  const SUPPORT_ISOLATED=['accent-sync.js','download-ready-gate.js','adaptive-capture-v2-bridge.js'];
   const SUPPORT_CSS=['content.css','accent-theme.css','hover-control-fix.css'];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const tabUrl=tab=>String(tab?.url||tab?.pendingUrl||'');
