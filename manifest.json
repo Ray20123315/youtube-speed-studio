@@ -1,17 +1,18 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.5.3",
-  "version_name": "1.0.5.3 Repair RC",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Repair RC.",
+  "version": "1.0.5.4",
+  "version_name": "1.0.5.4 Adaptive Resolver RC",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Adaptive Resolver RC.",
   "permissions": [
     "storage",
     "downloads",
     "scripting",
-    "alarms"
+    "alarms",
+    "webRequest"
   ],
   "action": {
-    "default_title": "youtube-speed-studio · Repair RC",
+    "default_title": "youtube-speed-studio · Adaptive Resolver RC",
     "default_popup": "popup.html"
   },
   "content_scripts": [
@@ -20,7 +21,8 @@
         "https://www.youtube.com/*"
       ],
       "js": [
-        "page-context.js"
+        "page-context.js",
+        "adaptive-resolver-page.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
@@ -31,6 +33,7 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "adaptive-capture-bridge.js",
         "runtime-bootstrap.js",
         "runtime-recovery.js",
         "providers.js",
@@ -59,6 +62,6 @@
     "https://api.github.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-adaptive.js"
   }
 }
