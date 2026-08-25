@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.4",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。",
+  "version": "1.0.5.1",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Diagnostic Test Build.",
   "permissions": [
     "storage",
     "downloads",
@@ -10,8 +10,8 @@
     "alarms"
   ],
   "action": {
-    "default_title": "youtube-speed-studio",
-    "default_popup": "popup.html"
+    "default_title": "youtube-speed-studio · DIAGNOSTIC",
+    "default_popup": "debug.html"
   },
   "content_scripts": [
     {
@@ -30,6 +30,7 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "debug-log.js",
         "runtime-bootstrap.js",
         "runtime-recovery.js",
         "providers.js",
@@ -58,5 +59,6 @@
   ],
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "version_name": "1.0.5.1 Diagnostic Forensics"
 }

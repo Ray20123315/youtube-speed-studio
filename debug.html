@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>youtube-speed-studio · Diagnostic Test Build</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
+    *{box-sizing:border-box} body{margin:0;background:#0d0d11;color:#f5f4fa;min-width:420px;min-height:520px;padding:16px}
+    .wrap{max-width:760px;margin:0 auto}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.tag{font:800 10px/1 ui-monospace,monospace;letter-spacing:.1em;color:#f0b84e;border:1px solid #c8871370;border-radius:999px;padding:6px 9px;background:#c8871318}.card{border:1px solid #303038;border-radius:16px;background:#17171d;padding:14px;margin:10px 0}.card h2{font-size:15px;margin:0 0 7px}.card p{font-size:12px;line-height:1.6;color:#aaa8b5;margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}button{appearance:none;border:1px solid #474752;background:#22222a;color:#fff;border-radius:11px;padding:10px 12px;font-weight:750;cursor:pointer}button.primary{border-color:#c8871388;background:#c8871322;color:#f0b84e}button:hover{border-color:#f0b84e}.status{white-space:pre-wrap;font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;color:#d0ced8;max-height:230px;overflow:auto}.warn{color:#f0b84e}.small{font-size:10px;color:#777582}.row{display:flex;gap:8px;flex-wrap:wrap}.row button{flex:1 1 180px}.steps{padding-left:20px;font-size:12px;line-height:1.7;color:#c8c5d0}iframe{position:fixed;width:1px;height:1px;opacity:.001;pointer-events:none;left:-9999px;top:-9999px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="head"><div><h1 style="font-size:20px;margin:0 0 4px">YTSS Forensics</h1><div class="small">本機診斷測試版 · 不自動上傳任何 log</div></div><span class="tag" id="buildTag">DIAGNOSTIC</span></div>
+    <section class="card"><h2>建議測試順序</h2><ol class="steps"><li>按「清除並開始新紀錄」。</li><li>打開正常 Popup / Options / Download Studio，重現金色仍紫色與未連線。</li><li>回 YouTube 頁連點 1× / 1.25× / 1.5× / 2× / 3×、− / +。</li><li>回這裡按「匯出問題包 JSON」，把檔案直接上傳給 ChatGPT。</li></ol></section>
+    <section class="card"><h2>操作</h2><div class="grid"><button id="fresh" class="primary">清除並開始新紀錄</button><button id="sample">立即深度取樣</button><button id="openPopup">開正常 Popup（新分頁）</button><button id="openOptions">開 Options</button><button id="openDownload">開 Download Studio</button><button id="export" class="primary">匯出問題包 JSON</button></div></section>
+    <section class="card"><h2>即時狀態</h2><pre id="status" class="status">準備中…</pre></section>
+    <section class="card"><h2>隱私</h2><p>Log 只寫在本機 extension storage，採 ring buffer；signed googlevideo / videoplayback URL、token、cookie、Authorization 等內容在寫入前即 redaction。匯出由你手動觸發。</p></section>
+    <iframe id="optionsFrame" title="Options diagnostic frame"></iframe>
+    <iframe id="popupFrame" title="Popup diagnostic frame"></iframe>
+  </main>
+  <script src="runtime-client.js"></script>
+  <script src="debug-log.js"></script>
+  <script src="debug-ui.js"></script>
+</body>
+</html>
