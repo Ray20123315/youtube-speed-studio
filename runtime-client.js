@@ -1,276 +1,38 @@
 (() => {
   'use strict';
   if (globalThis.YTSSRuntimeClient) return;
-
-  const PROTOCOL = 7;
-  const SUPPORTED = [
-    /^https:\/\/([\w-]+\.)?youtube\.com\//i,
-    /^https:\/\/([\w-]+\.)?bilibili\.com\//i
-  ];
-  const QUERY_PATTERNS = [
-    'https://youtube.com/*',
-    'https://*.youtube.com/*',
-    'https://bilibili.com/*',
-    'https://*.bilibili.com/*'
-  ];
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-  const tabUrl = tab => String(tab?.url || tab?.pendingUrl || '');
-  const isSupportedUrl = url => SUPPORTED.some(re => re.test(String(url || '')));
-  const errorText = error => error?.message || (error ? String(error) : null);
-
-  function sourceIdentity(raw) {
-    try {
-      const url = new URL(String(raw || ''));
-      const host = url.hostname.toLowerCase();
-      const youtube = host === 'youtube.com' || host.endsWith('.youtube.com');
-      const bilibili = host === 'bilibili.com' || host.endsWith('.bilibili.com');
-      if (!youtube && !bilibili) return null;
-      if (youtube) {
-        const videoId = url.pathname === '/watch'
-          ? url.searchParams.get('v')
-          : url.pathname.startsWith('/shorts/') ? url.pathname.split('/')[2] || null : null;
-        return { platform: 'youtube', platformLabel: 'YouTube', videoId, href: url.href };
-      }
-      return { platform: 'bilibili', platformLabel: 'bilibili', videoId: null, href: url.href };
-    } catch {
-      return null;
-    }
-  }
-
-  function pageSourceHint() {
-    try {
-      if (!location.protocol.startsWith('chrome-extension')) return { tabId: null, url: null };
-      const params = new URLSearchParams(location.search);
-      const rawId = Number(params.get('sourceTabId'));
-      const rawUrl = params.get('sourceUrl');
-      return {
-        tabId: Number.isInteger(rawId) && rawId > 0 ? rawId : null,
-        url: isSupportedUrl(rawUrl) ? rawUrl : null
-      };
-    } catch {
-      return { tabId: null, url: null };
-    }
-  }
-
-  function sourceMatchScore(tab, hint, preferActive) {
-    let score = 0;
-    const url = tabUrl(tab);
-    if (hint.tabId && tab?.id === hint.tabId) score += 10000;
-    if (hint.url && url === hint.url) score += 5000;
-    if (hint.url && url) {
-      const expected = sourceIdentity(hint.url);
-      const actual = sourceIdentity(url);
-      if (expected?.platform && expected.platform === actual?.platform) score += 500;
-      if (expected?.videoId && expected.videoId === actual?.videoId) score += 3500;
-    }
-    if (preferActive && tab?.active) score += 100;
-    return score;
-  }
-
-  function normalizeRuntimeResponse(tab, response) {
-    if (!response || typeof response !== 'object') return response;
-    const identity = sourceIdentity(tabUrl(tab));
-    const rawContext = response.context && typeof response.context === 'object' ? response.context : {};
-    const platform = rawContext.platform || identity?.platform || null;
-    const platformLabel = rawContext.platformLabel || identity?.platformLabel || (platform === 'youtube' ? 'YouTube' : platform === 'bilibili' ? 'bilibili' : null);
-    const href = rawContext.href || identity?.href || tabUrl(tab) || null;
-    if (rawContext.platform === platform && rawContext.platformLabel === platformLabel && rawContext.href === href) return response;
-    return {
-      ...response,
-      context: {
-        ...rawContext,
-        platform,
-        platformLabel,
-        href
-      },
-      contextNormalizedFromTab: Boolean(identity && (!rawContext.platform || !rawContext.platformLabel || !rawContext.href))
-    };
-  }
-
-  async function probe(tabId, attempts = 1, intervalMs = 120) {
-    let error = null;
-    for (let i = 0; i < attempts; i++) {
-      try {
-        const response = await chrome.tabs.sendMessage(tabId, { type: 'YTSS_GET_RUNTIME', protocol: PROTOCOL });
-        if (response?.ok) return { ok: true, response };
-        error = new Error('runtime handshake returned no usable response');
-      } catch (e) {
-        error = e;
-      }
-      if (i + 1 < attempts) await sleep(intervalMs);
-    }
-    return { ok: false, error };
-  }
-
-  async function waitForRuntime(tabId, attempts = 20, intervalMs = 150) {
-    return probe(tabId, attempts, intervalMs);
-  }
-
-  async function inject(tab) {
-    const url = tabUrl(tab);
-    if (!tab?.id || !isSupportedUrl(url)) return { ok: false, code: 'unsupported-page' };
-    const identity = sourceIdentity(url);
-    const isYoutube = identity?.platform === 'youtube';
-    let pageBridgeError = null;
-    let fullRuntimeError = null;
-
-    if (isYoutube) {
-      try {
-        await chrome.scripting.executeScript({ target: { tabId: tab.id }, world: 'MAIN', files: ['page-context.js'] });
-      } catch (error) {
-        pageBridgeError = error;
-      }
-    }
-
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        world: 'ISOLATED',
-        files: ['runtime-bootstrap.js', 'runtime-recovery.js']
-      });
-    } catch (error) {
-      return { ok: false, code: 'recovery-inject-failed', error, pageBridgeError: errorText(pageBridgeError) };
-    }
-
-    const recovery = await waitForRuntime(tab.id, 12, 100);
-    if (!recovery.ok) {
-      return { ok: false, code: 'recovery-no-handshake', error: recovery.error, pageBridgeError: errorText(pageBridgeError) };
-    }
-
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        world: 'ISOLATED',
-        files: ['providers.js', 'content.js']
-      });
-    } catch (error) {
-      fullRuntimeError = error;
-    }
-
-    try {
-      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css', 'accent-theme.css', 'hover-control-fix.css'] });
-    } catch {}
-
-    const finalProbe = await waitForRuntime(tab.id, 8, 125);
-    const rawResponse = finalProbe.ok ? finalProbe.response : recovery.response;
-    const response = normalizeRuntimeResponse(tab, rawResponse);
-    return {
-      ok: true,
-      response,
-      reinjected: true,
-      recoveryBridge: !!response?.recoveryBridge,
-      recoveryVerified: true,
-      pageBridgeError: errorText(pageBridgeError),
-      fullRuntimeError: errorText(fullRuntimeError)
-    };
-  }
-
-  async function ensure(tab, { allowInject = true } = {}) {
-    if (!tab?.id) return { ok: false, code: 'no-tab' };
-    const first = await probe(tab.id, 3, 120);
-    if (first.ok) {
-      const response = normalizeRuntimeResponse(tab, first.response);
-      return { ...first, response, reinjected: false, recoveryBridge: !!response?.recoveryBridge };
-    }
-    if (!allowInject) return { ok: false, code: 'no-receiver', error: first.error };
-    return inject(tab);
-  }
-
-  async function supportedTabs(preferredTabId = null) {
-    const seen = new Map();
-    if (preferredTabId) {
-      try {
-        const preferred = await chrome.tabs.get(preferredTabId);
-        if (preferred?.id && isSupportedUrl(tabUrl(preferred))) seen.set(preferred.id, preferred);
-      } catch {}
-    }
-    try {
-      for (const tab of await chrome.tabs.query({ url: QUERY_PATTERNS })) {
-        if (tab?.id && isSupportedUrl(tabUrl(tab))) seen.set(tab.id, tab);
-      }
-    } catch {}
-    if (!seen.size) {
-      try {
-        for (const tab of await chrome.tabs.query({})) {
-          if (tab?.id && isSupportedUrl(tabUrl(tab))) seen.set(tab.id, tab);
-        }
-      } catch {}
-    }
-    return [...seen.values()];
-  }
-
-  async function discover({
-    platform = null,
-    requireVideo = false,
-    preferActive = true,
-    preferredTabId = null,
-    preferredUrl = null
-  } = {}) {
-    const pageHint = pageSourceHint();
-    const hint = {
-      tabId: Number.isInteger(preferredTabId) && preferredTabId > 0 ? preferredTabId : pageHint.tabId,
-      url: isSupportedUrl(preferredUrl) ? preferredUrl : pageHint.url
-    };
-    const tabs = await supportedTabs(hint.tabId);
-    const ordered = [...tabs].sort((a, b) =>
-      sourceMatchScore(b, hint, preferActive) - sourceMatchScore(a, hint, preferActive)
-      || (b.lastAccessed || 0) - (a.lastAccessed || 0)
-    );
-    let connected = null;
-    let stale = null;
-    let lastFailure = null;
-    const version = chrome.runtime.getManifest().version;
-
-    for (const tab of ordered) {
-      const result = await ensure(tab, { allowInject: true });
-      if (!result.ok) {
-        lastFailure = {
-          tabId: tab.id,
-          code: result.code || 'runtime-unavailable',
-          error: errorText(result.error),
-          pageBridgeError: result.pageBridgeError || null
-        };
-        continue;
-      }
-      const r = normalizeRuntimeResponse(tab, result.response);
-      if (r.protocol !== PROTOCOL || r.version !== version) {
-        stale ||= { tab, response: r };
-        continue;
-      }
-      const inferredPlatform = r.context?.platform || sourceIdentity(tabUrl(tab))?.platform || null;
-      if (platform && inferredPlatform !== platform) continue;
-      const candidate = {
-        tab,
-        tabId: tab.id,
-        response: r,
-        reinjected: !!result.reinjected,
-        recoveryBridge: !!r.recoveryBridge,
-        recoveryVerified: !!result.recoveryVerified,
-        fullRuntimeError: result.fullRuntimeError || null,
-        pageBridgeError: result.pageBridgeError || null,
-        sourceMatched: sourceMatchScore(tab, hint, false) > 0
-      };
-      connected ||= candidate;
-      const isVideo = inferredPlatform === 'youtube'
-        ? ['watch', 'shorts'].includes(r.context?.pageType)
-        : Boolean(r.context?.pageType && r.context.pageType !== 'other');
-      if (!requireVideo || isVideo) return { ok: true, kind: isVideo ? 'video' : 'runtime', ...candidate };
-    }
-
-    if (connected) return { ok: !requireVideo, kind: 'runtime-only', ...connected };
-    if (stale) return { ok: false, kind: 'stale', ...stale };
-    return { ok: false, kind: 'missing', failure: lastFailure, sourceHint: hint };
-  }
-
-  globalThis.YTSSRuntimeClient = Object.freeze({
-    PROTOCOL,
-    isSupportedUrl,
-    sourceIdentity,
-    normalizeRuntimeResponse,
-    probe,
-    waitForRuntime,
-    inject,
-    ensure,
-    discover
-  });
+  const PROTOCOL=7;
+  const SUPPORTED=[/^https:\/\/([\w-]+\.)?youtube\.com\//i,/^https:\/\/([\w-]+\.)?bilibili\.com\//i];
+  const QUERY_PATTERNS=['https://youtube.com/*','https://*.youtube.com/*','https://bilibili.com/*','https://*.bilibili.com/*'];
+  const SUPPORT_MAIN=['adaptive-resolver-v2-page.js'];
+  const SUPPORT_ISOLATED=['support-bootstrap-v2.js','download-ready-gate.js','adaptive-capture-v2-bridge.js','control-failsafe-v2.js'];
+  const SUPPORT_CSS=['content.css','accent-theme.css','hover-control-fix.css'];
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const tabUrl=tab=>String(tab?.url||tab?.pendingUrl||'');
+  const isSupportedUrl=url=>SUPPORTED.some(re=>re.test(String(url||'')));
+  const errorText=e=>e?.message||(e?String(e):null);
+  function sourceIdentity(raw){try{const u=new URL(String(raw||'')),h=u.hostname.toLowerCase(),yt=h==='youtube.com'||h.endsWith('.youtube.com'),bi=h==='bilibili.com'||h.endsWith('.bilibili.com');if(!yt&&!bi)return null;if(yt){const videoId=u.pathname==='/watch'?u.searchParams.get('v'):u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]||null:null;return{platform:'youtube',platformLabel:'YouTube',videoId,href:u.href};}return{platform:'bilibili',platformLabel:'bilibili',videoId:null,href:u.href};}catch{return null}}
+  function pageSourceHint(){try{if(!location.protocol.startsWith('chrome-extension'))return{tabId:null,url:null};const p=new URLSearchParams(location.search),id=Number(p.get('sourceTabId')),url=p.get('sourceUrl');return{tabId:Number.isInteger(id)&&id>0?id:null,url:isSupportedUrl(url)?url:null};}catch{return{tabId:null,url:null}}}
+  function sourceMatchScore(tab,hint,preferActive){let s=0,u=tabUrl(tab);if(hint.tabId&&tab?.id===hint.tabId)s+=10000;if(hint.url&&u===hint.url)s+=5000;if(hint.url&&u){const e=sourceIdentity(hint.url),a=sourceIdentity(u);if(e?.platform&&e.platform===a?.platform)s+=500;if(e?.videoId&&e.videoId===a?.videoId)s+=3500;}if(preferActive&&tab?.active)s+=100;return s;}
+  function normalizeRuntimeResponse(tab,response){if(!response||typeof response!=='object')return response;const id=sourceIdentity(tabUrl(tab)),raw=response.context&&typeof response.context==='object'?response.context:{},platform=raw.platform||id?.platform||null,label=raw.platformLabel||id?.platformLabel||(platform==='youtube'?'YouTube':platform==='bilibili'?'bilibili':null),href=raw.href||id?.href||tabUrl(tab)||null;if(raw.platform===platform&&raw.platformLabel===label&&raw.href===href)return response;return{...response,context:{...raw,platform,platformLabel:label,href},contextNormalizedFromTab:Boolean(id&&(!raw.platform||!raw.platformLabel||!raw.href))};}
+  async function probe(tabId,attempts=1,intervalMs=120){let error=null;for(let i=0;i<attempts;i++){try{const response=await chrome.tabs.sendMessage(tabId,{type:'YTSS_GET_RUNTIME',protocol:PROTOCOL});if(response?.ok)return{ok:true,response};error=new Error('runtime handshake returned no usable response');}catch(e){error=e;}if(i+1<attempts)await sleep(intervalMs);}return{ok:false,error};}
+  const waitForRuntime=(tabId,attempts=20,intervalMs=150)=>probe(tabId,attempts,intervalMs);
+  async function refreshSupportAssets(tab){const url=tabUrl(tab),id=sourceIdentity(url);if(!tab?.id||!isSupportedUrl(url))return{ok:false,code:'unsupported-page'};let mainError=null,isolatedError=null,cssError=null;if(id?.platform==='youtube'){try{await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',files:SUPPORT_MAIN});}catch(e){mainError=errorText(e);}}
+    try{await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',files:SUPPORT_ISOLATED});}catch(e){isolatedError=errorText(e);}
+    try{await chrome.scripting.insertCSS({target:{tabId:tab.id},files:SUPPORT_CSS});}catch(e){cssError=errorText(e);}
+    return{ok:!isolatedError,mainError,isolatedError,cssError};}
+  async function inject(tab){const url=tabUrl(tab);if(!tab?.id||!isSupportedUrl(url))return{ok:false,code:'unsupported-page'};const id=sourceIdentity(url),isYoutube=id?.platform==='youtube';let pageBridgeError=null,fullRuntimeError=null,support=null;
+    if(isYoutube){try{await chrome.scripting.executeScript({target:{tabId:tab.id},world:'MAIN',files:['page-context.js',...SUPPORT_MAIN]});}catch(e){pageBridgeError=e;}}
+    try{await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',files:[...SUPPORT_ISOLATED,'runtime-bootstrap.js','runtime-recovery.js']});}catch(e){return{ok:false,code:'recovery-inject-failed',error:e,pageBridgeError:errorText(pageBridgeError)};}
+    const recovery=await waitForRuntime(tab.id,12,100);if(!recovery.ok)return{ok:false,code:'recovery-no-handshake',error:recovery.error,pageBridgeError:errorText(pageBridgeError)};
+    try{await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',files:['providers.js','content.js']});}catch(e){fullRuntimeError=e;}
+    support=await refreshSupportAssets(tab);
+    const final=await waitForRuntime(tab.id,8,125),raw=final.ok?final.response:recovery.response,response=normalizeRuntimeResponse(tab,raw);
+    return{ok:true,response,reinjected:true,recoveryBridge:!!response?.recoveryBridge,recoveryVerified:true,pageBridgeError:errorText(pageBridgeError),fullRuntimeError:errorText(fullRuntimeError),support};}
+  async function ensure(tab,{allowInject=true}={}){if(!tab?.id)return{ok:false,code:'no-tab'};const first=await probe(tab.id,3,120);if(first.ok){const support=await refreshSupportAssets(tab);const after=await probe(tab.id,1,0);const response=normalizeRuntimeResponse(tab,after.ok?after.response:first.response);return{ok:true,response,reinjected:false,recoveryBridge:!!response?.recoveryBridge,supportRefreshed:true,support};}if(!allowInject)return{ok:false,code:'no-receiver',error:first.error};return inject(tab);}
+  async function supportedTabs(preferredTabId=null){const seen=new Map();if(preferredTabId)try{const t=await chrome.tabs.get(preferredTabId);if(t?.id&&isSupportedUrl(tabUrl(t)))seen.set(t.id,t);}catch{}try{for(const t of await chrome.tabs.query({url:QUERY_PATTERNS}))if(t?.id&&isSupportedUrl(tabUrl(t)))seen.set(t.id,t);}catch{}if(!seen.size)try{for(const t of await chrome.tabs.query({}))if(t?.id&&isSupportedUrl(tabUrl(t)))seen.set(t.id,t);}catch{}return[...seen.values()];}
+  async function discover({platform=null,requireVideo=false,preferActive=true,preferredTabId=null,preferredUrl=null}={}){const ph=pageSourceHint(),hint={tabId:Number.isInteger(preferredTabId)&&preferredTabId>0?preferredTabId:ph.tabId,url:isSupportedUrl(preferredUrl)?preferredUrl:ph.url},tabs=await supportedTabs(hint.tabId),ordered=[...tabs].sort((a,b)=>sourceMatchScore(b,hint,preferActive)-sourceMatchScore(a,hint,preferActive)||(b.lastAccessed||0)-(a.lastAccessed||0));let connected=null,stale=null,lastFailure=null;const version=chrome.runtime.getManifest().version;
+    for(const tab of ordered){const result=await ensure(tab,{allowInject:true});if(!result.ok){lastFailure={tabId:tab.id,code:result.code||'runtime-unavailable',error:errorText(result.error),pageBridgeError:result.pageBridgeError||null};continue;}const r=normalizeRuntimeResponse(tab,result.response);if(r.protocol!==PROTOCOL||r.version!==version){stale||={tab,response:r};continue;}const inferred=r.context?.platform||sourceIdentity(tabUrl(tab))?.platform||null;if(platform&&inferred!==platform)continue;const candidate={tab,tabId:tab.id,response:r,reinjected:!!result.reinjected,recoveryBridge:!!r.recoveryBridge,recoveryVerified:!!result.recoveryVerified,fullRuntimeError:result.fullRuntimeError||null,pageBridgeError:result.pageBridgeError||null,sourceMatched:sourceMatchScore(tab,hint,false)>0,support:result.support||null};connected||=candidate;const isVideo=inferred==='youtube'?['watch','shorts'].includes(r.context?.pageType):Boolean(r.context?.pageType&&r.context.pageType!=='other');if(!requireVideo||isVideo)return{ok:true,kind:isVideo?'video':'runtime',...candidate};}
+    if(connected)return{ok:!requireVideo,kind:'runtime-only',...connected};if(stale)return{ok:false,kind:'stale',...stale};return{ok:false,kind:'missing',failure:lastFailure,sourceHint:hint};}
+  globalThis.YTSSRuntimeClient=Object.freeze({PROTOCOL,isSupportedUrl,sourceIdentity,normalizeRuntimeResponse,probe,waitForRuntime,refreshSupportAssets,inject,ensure,discover});
 })();
