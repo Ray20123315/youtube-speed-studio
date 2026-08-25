@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.5.7",
-  "version_name": "1.0.5.7 Control Rollback + Adaptive RC",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Control Rollback + Adaptive RC.",
+  "version": "1.0.5.8",
+  "version_name": "1.0.5.8 Download Guard + Control Rollback RC",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Download Guard + Control Rollback RC.",
   "permissions": [
     "storage",
     "downloads",
@@ -12,7 +12,7 @@
     "webRequest"
   ],
   "action": {
-    "default_title": "youtube-speed-studio · Control Rollback + Adaptive RC",
+    "default_title": "youtube-speed-studio · Download Guard + Control Rollback RC",
     "default_popup": "popup.html"
   },
   "content_scripts": [

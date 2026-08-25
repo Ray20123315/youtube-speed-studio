@@ -9,4 +9,16 @@ importScripts('background.js');
   chrome.webRequest.onBeforeRequest.addListener(d=>{const item=remember(d.tabId,d.url);if(item)chrome.tabs.sendMessage(d.tabId,{type:'YTSS_MEDIA_CAPTURE',capture:item}).catch(()=>{});},{urls:['https://*.googlevideo.com/*']});
   chrome.tabs.onRemoved.addListener(id=>byTab.delete(id));
   chrome.runtime.onMessage.addListener((m,s,send)=>{if(!m||typeof m!=='object')return false;const tabId=Number.isInteger(m.tabId)&&m.tabId>=0?m.tabId:s.tab?.id;if(m.type==='YTSS_GET_MEDIA_CAPTURES'){send({ok:true,captures:list(tabId),at:Date.now()});return false;}if(m.type==='YTSS_CLEAR_MEDIA_CAPTURES'){if(Number.isInteger(tabId))byTab.delete(tabId);send({ok:true});return false;}return false;});
+
+  chrome.downloads.onDeterminingFilename.addListener((item,suggest)=>{
+    try{
+      if(item.byExtensionId!==chrome.runtime.id)return suggest();
+      const url=String(item.url||item.finalUrl||'');
+      const media=/^https:\/\/[^/]*googlevideo\.com\//i.test(url)||url.startsWith(`blob:chrome-extension://${chrome.runtime.id}/`);
+      if(!media)return suggest();
+      const raw=String(item.filename||'youtube-speed-studio.mp4').replace(/\\/g,'/').split('/').pop()||'youtube-speed-studio.mp4';
+      const filename=raw.replace(/\.[^.]+$/,'')+'.mp4';
+      suggest({filename,conflictAction:'uniquify'});
+    }catch{suggest();}
+  });
 })();

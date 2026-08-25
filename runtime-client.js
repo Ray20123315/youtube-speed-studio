@@ -35,4 +35,19 @@
     for(const tab of ordered){const result=await ensure(tab,{allowInject:true});if(!result.ok){lastFailure={tabId:tab.id,code:result.code||'runtime-unavailable',error:errorText(result.error),pageBridgeError:result.pageBridgeError||null};continue;}const r=normalizeRuntimeResponse(tab,result.response);if(r.protocol!==PROTOCOL||r.version!==version){stale||={tab,response:r};continue;}const inferred=r.context?.platform||sourceIdentity(tabUrl(tab))?.platform||null;if(platform&&inferred!==platform)continue;const candidate={tab,tabId:tab.id,response:r,reinjected:!!result.reinjected,recoveryBridge:!!r.recoveryBridge,recoveryVerified:!!result.recoveryVerified,fullRuntimeError:result.fullRuntimeError||null,pageBridgeError:result.pageBridgeError||null,sourceMatched:sourceMatchScore(tab,hint,false)>0,support:result.support||null};connected||=candidate;const isVideo=inferred==='youtube'?['watch','shorts'].includes(r.context?.pageType):Boolean(r.context?.pageType&&r.context.pageType!=='other');if(!requireVideo||isVideo)return{ok:true,kind:isVideo?'video':'runtime',...candidate};}
     if(connected)return{ok:!requireVideo,kind:'runtime-only',...connected};if(stale)return{ok:false,kind:'stale',...stale};return{ok:false,kind:'missing',failure:lastFailure,sourceHint:hint};}
   globalThis.YTSSRuntimeClient=Object.freeze({PROTOCOL,isSupportedUrl,sourceIdentity,normalizeRuntimeResponse,probe,waitForRuntime,refreshSupportAssets,inject,ensure,discover});
+  function loadDownloadGuard(){
+    try {
+      if (!location.protocol.startsWith('chrome-extension') || !location.pathname.endsWith('/options.html')) return;
+      const run=()=>{
+        if (document.querySelector('script[data-ytss-download-guard="1"]')) return;
+        const script=document.createElement('script');
+        script.src=chrome.runtime.getURL('download-direct-fallback-v1.js');
+        script.dataset.ytssDownloadGuard='1';
+        document.head.appendChild(script);
+      };
+      if (document.readyState==='complete') queueMicrotask(run);
+      else addEventListener('load',run,{once:true});
+    } catch {}
+  }
+  loadDownloadGuard();
 })();
