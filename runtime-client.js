@@ -16,6 +16,7 @@
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const tabUrl = tab => String(tab?.url || tab?.pendingUrl || '');
   const isSupportedUrl = url => SUPPORTED.some(re => re.test(String(url || '')));
+  const errorText = error => error?.message || (error ? String(error) : null);
 
   function sourceIdentity(raw) {
     try {
@@ -89,28 +90,77 @@
     const url = tabUrl(tab);
     if (!tab?.id || !isSupportedUrl(url)) return { ok: false, code: 'unsupported-page' };
     const isYoutube = /(^|\.)youtube\.com$/i.test(new URL(url).hostname);
-    try {
-      if (isYoutube) {
+    let pageBridgeError = null;
+    let fullRuntimeError = null;
+
+    // MAIN-world page extraction is useful for Download Studio but must not be allowed
+    // to prevent the isolated-world recovery receiver from coming back online.
+    if (isYoutube) {
+      try {
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, world: 'MAIN', files: ['page-context.js'] });
+      } catch (error) {
+        pageBridgeError = error;
       }
+    }
+
+    try {
+      // Bootstrap and recovery are intentionally isolated from providers/content.js.
+      // The bootstrap disposes a surviving stale bridge object before the fresh file
+      // registers chrome.runtime listeners in the current extension context.
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         world: 'ISOLATED',
-        files: ['runtime-recovery.js', 'providers.js', 'content.js']
+        files: ['runtime-bootstrap.js', 'runtime-recovery.js']
       });
-      try {
-        await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css', 'accent-theme.css'] });
-      } catch {}
-
-      // content.js finishes its async bootstrap after executeScript() resolves. The previous
-      // 140ms/3-probe window was too short on busy YouTube tabs and after extension reloads.
-      const result = await waitForRuntime(tab.id, 20, 150);
-      return result.ok
-        ? { ok: true, response: result.response, reinjected: true, recoveryBridge: !!result.response?.recoveryBridge }
-        : { ok: false, code: 'reinject-no-handshake', error: result.error };
     } catch (error) {
-      return { ok: false, code: 'reinject-failed', error };
+      return {
+        ok: false,
+        code: 'recovery-inject-failed',
+        error,
+        pageBridgeError: errorText(pageBridgeError)
+      };
     }
+
+    // Prove the new receiver exists before touching optional full-runtime files.
+    const recovery = await waitForRuntime(tab.id, 12, 100);
+    if (!recovery.ok) {
+      return {
+        ok: false,
+        code: 'recovery-no-handshake',
+        error: recovery.error,
+        pageBridgeError: errorText(pageBridgeError)
+      };
+    }
+
+    // Full content runtime is best effort on already-open tabs. Legacy pages may still
+    // contain the old non-configurable V100 guard; recovery remains authoritative if so.
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: 'ISOLATED',
+        files: ['providers.js', 'content.js']
+      });
+    } catch (error) {
+      fullRuntimeError = error;
+    }
+
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css', 'accent-theme.css'] });
+    } catch {}
+
+    // Prefer the full runtime if it successfully takes ownership; otherwise keep the
+    // already-proven recovery response instead of downgrading to a false disconnect.
+    const finalProbe = await waitForRuntime(tab.id, 8, 125);
+    const response = finalProbe.ok ? finalProbe.response : recovery.response;
+    return {
+      ok: true,
+      response,
+      reinjected: true,
+      recoveryBridge: !!response?.recoveryBridge,
+      recoveryVerified: true,
+      pageBridgeError: errorText(pageBridgeError),
+      fullRuntimeError: errorText(fullRuntimeError)
+    };
   }
 
   async function ensure(tab, { allowInject = true } = {}) {
@@ -169,7 +219,12 @@
     for (const tab of ordered) {
       const result = await ensure(tab, { allowInject: true });
       if (!result.ok) {
-        lastFailure = { tabId: tab.id, code: result.code || 'runtime-unavailable', error: result.error };
+        lastFailure = {
+          tabId: tab.id,
+          code: result.code || 'runtime-unavailable',
+          error: errorText(result.error),
+          pageBridgeError: result.pageBridgeError || null
+        };
         continue;
       }
       const r = result.response;
@@ -184,6 +239,9 @@
         response: r,
         reinjected: !!result.reinjected,
         recoveryBridge: !!r.recoveryBridge,
+        recoveryVerified: !!result.recoveryVerified,
+        fullRuntimeError: result.fullRuntimeError || null,
+        pageBridgeError: result.pageBridgeError || null,
         sourceMatched: sourceMatchScore(tab, hint, false) > 0
       };
       connected ||= candidate;

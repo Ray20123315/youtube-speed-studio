@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "product": "youtube-speed-studio",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "owner": "Ray20123315",
   "repository": "Ray20123315/youtube-speed-studio",
   "officialSource": "https://github.com/Ray20123315/youtube-speed-studio",
   "license": "LicenseRef-youtube-speed-studio-Proprietary-1.0",
-  "fingerprint": "5d364c418e6b6ae336cc347d6db89924f606c0b4e91d5ecdd776305c5372c6b3",
+  "fingerprint": "8ef8cd5704223a73d9ae2fcc649039d279e1bdf5f723b25ffff5219b511f37ec",
   "algorithm": "SHA-256",
   "note": "Tamper-evident official-build manifest. Client-side verification cannot technically prevent a determined party from modifying code; the proprietary license controls permitted use, modification, and redistribution.",
   "files": [
@@ -17,13 +17,13 @@
     },
     {
       "path": "README.md",
-      "sha256": "d777ff44afbe1a37b1bf7667cb80fe175a39635b833bb3a9320233f28e9ab4d1",
-      "size": 8376
+      "sha256": "1a67d96b463b594935991d27f429cbfecfddad5687265c0fde4869e946101f55",
+      "size": 8908
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "bd6a80ef369740f8f180d68cc9a3b7d4245440824f5beef4057ac8879fb05223",
-      "size": 1212
+      "sha256": "8500951238f8da0452e790c0cc64f425130d3f1d155734478187b4548d369acd",
+      "size": 1389
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -72,8 +72,8 @@
     },
     {
       "path": "manifest.json",
-      "sha256": "58d5070320298aa8a6572f07d35ebef6a632baa674d15085c75ca2230cc26c31",
-      "size": 1390
+      "sha256": "f2a02e45c4a484e70ec5ce36a03c5b5cac6cba7ec811574a1f9ee01103ada5fc",
+      "size": 1422
     },
     {
       "path": "mp4-remux-worker.js",
@@ -126,9 +126,14 @@
       "size": 5369
     },
     {
+      "path": "runtime-bootstrap.js",
+      "sha256": "28d6c7a21060decefdd6e770394ebf4cab4d6339dc7e4bb8510ec601efbb1794",
+      "size": 736
+    },
+    {
       "path": "runtime-client.js",
-      "sha256": "2bee7197e55c251edb01196631964fc35ce60c7dabdb0b8d4f407f60a6fe809d",
-      "size": 7688
+      "sha256": "cb6325c13aeb4e00e7e5d6e42006dba7a3d68cf839c8f0e0af3377ef286572c9",
+      "size": 9534
     },
     {
       "path": "runtime-recovery.js",

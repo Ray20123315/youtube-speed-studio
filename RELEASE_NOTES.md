@@ -1,13 +1,13 @@
-# youtube-speed-studio 1.0.2
+# youtube-speed-studio 1.0.3
 
-Download source handoff and floating-controller interaction/viewport bugfix release.
+Zero-refresh extension-context recovery bugfix release.
 
 Highlights:
-- Popup now carries the originating YouTube `sourceTabId` and ordinary watch/Shorts page URL into Download Studio; runtime discovery prioritizes that exact source before generic tab scanning.
-- Download Studio visibly renders the carried source link so the selected video identity is no longer lost when the Options tab becomes active.
-- `runtime-recovery.js` now takes over stale/orphan floating-controller core controls with the current extension context, avoiding dead buttons after extension reload/update.
-- The recovery layer remains as a lightweight viewport repair after full runtime handoff, clamping the 236px → 290px Hover expansion inside the visible viewport near right/bottom edges.
-- `runtime-recovery.js` is now included in normal content-script startup so viewport repair also applies on fresh page loads, not only emergency reinjection.
-- Signed Googlevideo media URLs remain transient runtime-only data and are still consumed/removed from the DOM bridge immediately.
+- Adds `runtime-bootstrap.js`, which always disposes a surviving recovery bridge object before reinstalling `runtime-recovery.js` in the current extension context. A stale same-version JavaScript global can no longer suppress the fresh `chrome.runtime` receiver after an extension reload.
+- Recovery reinjection is now a separate, verified phase: `runtime-client.js` injects bootstrap + recovery first and requires a successful `YTSS_GET_RUNTIME` handshake before attempting optional Provider/full-content reinjection.
+- A legacy `content.js` guard or optional full-runtime injection failure can no longer turn a working recovery bridge into a false `reinject-failed` / disconnected state.
+- MAIN-world page-context injection failure is recorded separately from isolated-world runtime recovery so button control/runtime messaging can still recover independently; an existing page bridge may continue servicing Download Studio.
+- Runtime discovery now preserves explicit failure codes and recovery diagnostics for the exact carried source tab.
+- v1.0.2 source-link, source-tab priority, orphan-controller takeover, viewport clamping, accent behavior, and signed-media-URL privacy remain intact.
 
 See README.md for installation, permissions, platform support, limitations and security notes.
