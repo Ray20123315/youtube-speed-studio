@@ -5,6 +5,8 @@ body,
   --ytss-accent-soft-2: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 7%, transparent);
   --ytss-accent-border: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 42%, transparent);
   --ytss-accent-shadow: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 28%, transparent);
+  --ytss-accent-surface: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 12%, transparent);
+  --ytss-accent-surface-strong: color-mix(in srgb, var(--accent, var(--ytss-accent, #7658ff)) 18%, transparent);
 }
 
 body[data-accent="violet"] { --accent:#7658ff; --accent2:#9a83ff; --focus:#7658ff3d; }
@@ -37,7 +39,7 @@ body .studio-badge { color:var(--accent2); }
 body .studio-open-btn:hover { border-color:color-mix(in srgb,var(--accent) 58%,transparent); background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 18%,transparent),var(--ytss-accent-soft-2)); }
 body .quick-toggle.platform-limited small::after { color:var(--accent2); }
 
-/* Options: brand, selected navigation, focus states, runtime/profile accents and download status. */
+/* Options: brand, selected navigation, focus states and runtime/profile accents. */
 body .side-brand .logo { background:linear-gradient(145deg,var(--accent),var(--accent2)); box-shadow:0 10px 26px var(--ytss-accent-shadow); }
 body .nav-item.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 9px 24px var(--ytss-accent-shadow); }
 body .nav-item.active span { color:color-mix(in srgb,#fff 82%,var(--accent2)); }
@@ -51,14 +53,52 @@ body .number-control button:hover,
 body .key-capture.capturing { border-color:var(--ytss-accent-border); }
 body .key-capture.capturing { box-shadow:0 0 0 2px var(--focus); }
 body .safe-badge:not(.warn):not(.failed) { border-color:var(--ytss-accent-border); background:var(--ytss-accent-soft-2); color:var(--accent2); }
+body .platform-badge { border-color:var(--ytss-accent-border); color:var(--accent2); }
+body .platform-card { background:linear-gradient(135deg,var(--ytss-accent-soft-2),transparent 52%),var(--surface); }
+body .primary-outline-btn { border-color:var(--ytss-accent-border); background:var(--ytss-accent-soft-2); color:var(--text); }
+body .primary-outline-btn:hover { border-color:color-mix(in srgb,var(--accent) 62%,transparent); background:var(--ytss-accent-soft); }
+
+/* Download Studio: every purple accent-semantic surface is driven by the active Accent preset. */
+body .download-hero {
+  background:radial-gradient(circle at 92% 0%,var(--ytss-accent-surface-strong),transparent 35%),linear-gradient(145deg,var(--surface),var(--surface2));
+}
+body .download-hero .eyebrow,
+body .download-video-copy small,
+body .quality-summary span,
+body .download-choice .choice-mode { color:var(--accent2); }
+body .quality-summary article.accent {
+  background:linear-gradient(145deg,var(--ytss-accent-surface-strong),var(--ytss-accent-soft-2)),var(--surface2);
+  border-color:var(--ytss-accent-border);
+}
+body .quality-row.is-downloadable {
+  border-color:var(--ytss-accent-border);
+  background:linear-gradient(90deg,var(--ytss-accent-soft-2),transparent 42%),var(--surface2);
+}
+body .q-chip.info {
+  color:var(--accent2);
+  border-color:var(--ytss-accent-border);
+  background:var(--ytss-accent-soft-2);
+}
+body .download-choice:hover { border-color:var(--ytss-accent-border); }
+body .download-choice.selected {
+  border-color:var(--accent);
+  background:linear-gradient(135deg,var(--ytss-accent-soft),var(--ytss-accent-soft-2)),var(--surface2);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 14%,transparent);
+}
+body .download-choice .choice-mode {
+  border-color:var(--ytss-accent-border);
+  background:var(--ytss-accent-soft-2);
+}
+body .download-notice {
+  border-color:color-mix(in srgb,var(--accent) 26%,transparent);
+  background:var(--ytss-accent-soft-2);
+}
 body .memory-guard { border-color:var(--ytss-accent-border); background:var(--ytss-accent-soft-2); }
 body .progress-head > span { color:var(--accent2); border-color:var(--ytss-accent-border); }
 body .progress-row:nth-of-type(2) progress { color:var(--accent); }
-body .platform-badge,
-body .primary-outline-btn { border-color:var(--ytss-accent-border); color:var(--accent2); }
-body .primary-outline-btn:hover { background:var(--ytss-accent-soft); }
+body .ytss-source-link { color:var(--accent2)!important; }
 
-/* Floating controller: settings already publish panel.dataset.accent; map every preset to variables. */
+/* Floating controller: settings publish panel.dataset.accent; map every preset to variables. */
 #ytss-panel[data-accent="violet"] { --ytss-accent:#7658ff; --ytss-accent-2:#9a83ff; }
 #ytss-panel[data-accent="blue"] { --ytss-accent:#3478f6; --ytss-accent-2:#64a2ff; }
 #ytss-panel[data-accent="cyan"] { --ytss-accent:#00a7c7; --ytss-accent-2:#54d6e8; }

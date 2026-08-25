@@ -28,13 +28,14 @@
   };
 
   const previous = globalThis.__YTSS_RECOVERY_BRIDGE__;
-  if (previous?.alive && previous.version === VERSION && previous.protocol === PROTOCOL) {
+  if (previous?.messagingAlive && previous.version === VERSION && previous.protocol === PROTOCOL) {
     previous.touch?.();
     return;
   }
   try { previous?.dispose?.(); } catch {}
 
-  let alive = true;
+  let messageAlive = true;
+  let controlAlive = true;
   let visualRepairAlive = true;
   let lastTouch = Date.now();
   let recoverySettings = structuredClone(RECOVERY_DEFAULTS);
@@ -78,10 +79,31 @@
     };
   }
 
+  // page-context.js intentionally publishes supplemental player/channel identity only.
+  // Never let that partial object replace the canonical runtime contract required by
+  // runtime-client discovery (platform/pageType/mode/href).
   function readContext() {
+    const base = fallbackContext();
     const parsed = parseJson(document.documentElement?.getAttribute(PAGE_CONTEXT_ATTR));
-    if (parsed && typeof parsed === 'object') return parsed;
-    return fallbackContext();
+    if (!parsed || typeof parsed !== 'object') return base;
+    return {
+      ...base,
+      ...parsed,
+      platform: base.platform,
+      platformLabel: base.platformLabel,
+      href: location.href,
+      pageType: base.pageType,
+      mode: base.mode,
+      videoId: parsed.videoId || base.videoId,
+      channelKey: parsed.channelKey || base.channelKey,
+      channelAliases: Array.isArray(parsed.channelAliases) ? parsed.channelAliases : base.channelAliases,
+      channelLabel: parsed.channelLabel || parsed.channelName || base.channelLabel,
+      channelId: parsed.channelId || base.channelId,
+      channelSource: parsed.channelSource || parsed.source || base.channelSource,
+      playlistKey: parsed.playlistKey || base.playlistKey,
+      playlistLabel: parsed.playlistLabel || base.playlistLabel,
+      pageTitle: parsed.pageTitle || base.pageTitle
+    };
   }
 
   function requestContext() {
@@ -90,19 +112,20 @@
 
   function snapshot() {
     requestContext();
+    const context = readContext();
     return {
       ok: true,
       protocol: PROTOCOL,
       version: VERSION,
       recoveryBridge: true,
-      context: readContext(),
+      context,
       diagnostics: {
         at: Date.now(),
         version: VERSION,
         protocol: PROTOCOL,
         recoveryBridge: true,
         href: location.href,
-        context: readContext()
+        context
       }
     };
   }
@@ -149,7 +172,7 @@
   }
 
   function onMessage(message, sender, sendResponse) {
-    if (!alive || !extensionAlive() || !message || typeof message !== 'object') return false;
+    if (!messageAlive || !extensionAlive() || !message || typeof message !== 'object') return false;
     lastTouch = Date.now();
     if (message.type === 'YTSS_GET_RUNTIME' || message.type === 'YTSS_RECOVER') {
       sendResponse(snapshot());
@@ -290,8 +313,12 @@
     return target && document.getElementById(PANEL_ID)?.contains(target) ? target : null;
   }
 
+  // Capture on window so the current extension context gets first chance before any
+  // surviving document-level listener from an older extension context. If recovery
+  // cannot actually perform the action, do NOT swallow the event; let full content
+  // handlers (when available) process it instead.
   function onPanelClick(event) {
-    if (!alive) return;
+    if (!controlAlive || !extensionAlive()) return;
     const button = panelButtonFromEvent(event);
     if (!button) return;
     const id = button.id;
@@ -299,24 +326,26 @@
     const video = resolveVideo();
     const current = Number(video?.playbackRate) || configuredRate();
     const step = Math.max(.01, Number(recoverySettings.step) || .25);
-    let handled = true;
+    let handled = false;
 
-    if (id === 'ytss-minus' || id === 'ytss-quick-down') applyRecoveryRate(current - step);
-    else if (id === 'ytss-plus' || id === 'ytss-quick-up') applyRecoveryRate(current + step);
-    else if (Number.isFinite(preset)) applyRecoveryRate(preset);
+    if (id === 'ytss-minus' || id === 'ytss-quick-down') handled = applyRecoveryRate(current - step);
+    else if (id === 'ytss-plus' || id === 'ytss-quick-up') handled = applyRecoveryRate(current + step);
+    else if (Number.isFinite(preset)) handled = applyRecoveryRate(preset);
     else if (id === 'ytss-speed' || id === 'ytss-hover-speed') {
       const target = Math.abs(current - 1) < .01 ? configuredRate() : 1;
-      applyRecoveryRate(target, { persist: false });
+      handled = applyRecoveryRate(target, { persist: false });
     } else if (id === 'ytss-close') {
       recoverySettings.floatingEnabled = false;
       const panel = document.getElementById(PANEL_ID);
       if (panel) panel.style.display = 'none';
       chrome.storage.local.set({ floatingEnabled: false }).catch(() => {});
+      handled = true;
     } else if (id === 'ytss-collapse') {
       const panel = document.getElementById(PANEL_ID);
       panel?.classList.toggle('ytss-compact');
       schedulePanelRepair(20);
-    } else handled = false;
+      handled = true;
+    }
 
     if (handled) interceptEvent(event);
   }
@@ -332,14 +361,15 @@
   }
 
   function onPanelPointerDown(event) {
-    if (!alive || event.button !== 0) return;
+    if (!controlAlive || !extensionAlive() || event.button !== 0) return;
     const button = panelButtonFromEvent(event);
     if (!button || (button.id !== 'ytss-quick-boost' && button.id !== 'ytss-quick-pause')) return;
-    interceptEvent(event);
     const restoreRate = configuredRate();
+    const target = button.id === 'ytss-quick-pause' ? 1 : Number(recoverySettings.boostSpeed) || 3;
+    if (!applyRecoveryRate(target, { persist: false })) return;
     heldAction = { button, pointerId: event.pointerId ?? null, restoreRate };
     button.classList.add('ytss-held');
-    applyRecoveryRate(button.id === 'ytss-quick-pause' ? 1 : Number(recoverySettings.boostSpeed) || 3, { persist: false });
+    interceptEvent(event);
   }
 
   function onPanelPointerUp(event) {
@@ -394,17 +424,17 @@
   }
 
   function installPanelRepair() {
-    document.addEventListener('click', onPanelClick, true);
-    document.addEventListener('pointerdown', onPanelPointerDown, true);
-    document.addEventListener('pointerup', onPanelPointerUp, true);
-    document.addEventListener('pointercancel', onPanelPointerUp, true);
-    document.addEventListener('pointerover', onPanelPointerOver, true);
-    document.addEventListener('focusin', onPanelFocusIn, true);
-    document.addEventListener('transitionend', onPanelTransitionEnd, true);
+    window.addEventListener('click', onPanelClick, true);
+    window.addEventListener('pointerdown', onPanelPointerDown, true);
+    window.addEventListener('pointerup', onPanelPointerUp, true);
+    window.addEventListener('pointercancel', onPanelPointerUp, true);
+    window.addEventListener('pointerover', onPanelPointerOver, true);
+    window.addEventListener('focusin', onPanelFocusIn, true);
+    window.addEventListener('transitionend', onPanelTransitionEnd, true);
     window.addEventListener('resize', repairPanelViewport);
     panelObserver = new MutationObserver(records => {
       if (records.some(record => record.type === 'childList' || (record.type === 'attributes' && record.target?.id === PANEL_ID))) {
-        if (alive) applyAccent(recoverySettings.accentColor);
+        if (controlAlive) applyAccent(recoverySettings.accentColor);
         schedulePanelRepair(40);
       }
     });
@@ -413,49 +443,52 @@
   }
 
   function onStorageChanged(changes, area) {
-    if (!alive || area !== 'local') return;
+    if (!extensionAlive() || area !== 'local') return;
     for (const [key, change] of Object.entries(changes)) {
       if (Object.prototype.hasOwnProperty.call(RECOVERY_DEFAULTS, key)) recoverySettings[key] = change.newValue;
     }
     if (changes.profiles) recoverySettings.profiles = normalizeProfiles(changes.profiles.newValue);
     if (changes.accentColor) applyAccent(changes.accentColor.newValue);
     if (changes.position || changes.hoverExpand) schedulePanelRepair(40);
+    if (!messageAlive) return;
     const status = changes[STATUS_KEY]?.newValue;
     if (!status || status.version !== VERSION || status.protocol !== PROTOCOL || status.href !== location.href) return;
     // content.js publishes this only after its full runtime listener has been installed.
-    // Hand runtime/control ownership to content.js, but keep the small viewport repair layer
-    // alive so hover expansion remains fully visible after the recovery handshake is gone.
+    // Hand messaging/control ownership back to content.js; keep viewport repair only.
     setTimeout(handOffToFullRuntime, 250);
   }
 
+  function removeControlListeners() {
+    window.removeEventListener('click', onPanelClick, true);
+    window.removeEventListener('pointerdown', onPanelPointerDown, true);
+    window.removeEventListener('pointerup', onPanelPointerUp, true);
+    window.removeEventListener('pointercancel', onPanelPointerUp, true);
+  }
+
   function handOffToFullRuntime() {
-    if (!alive) return;
-    alive = false;
+    if (!messageAlive && !controlAlive) return;
+    messageAlive = false;
+    controlAlive = false;
     if (heldAction) finishHeldAction();
     try { chrome.runtime.onMessage.removeListener(onMessage); } catch {}
     try { chrome.storage.onChanged.removeListener(onStorageChanged); } catch {}
-    document.removeEventListener('click', onPanelClick, true);
-    document.removeEventListener('pointerdown', onPanelPointerDown, true);
-    document.removeEventListener('pointerup', onPanelPointerUp, true);
-    document.removeEventListener('pointercancel', onPanelPointerUp, true);
+    removeControlListeners();
     schedulePanelRepair(0);
   }
 
   function dispose() {
-    if (!alive && !visualRepairAlive) return;
-    alive = false;
+    if (!messageAlive && !controlAlive && !visualRepairAlive) return;
+    messageAlive = false;
+    controlAlive = false;
     visualRepairAlive = false;
     clearTimeout(repairTimer);
     if (heldAction) finishHeldAction();
     try { chrome.runtime.onMessage.removeListener(onMessage); } catch {}
     try { chrome.storage.onChanged.removeListener(onStorageChanged); } catch {}
-    document.removeEventListener('click', onPanelClick, true);
-    document.removeEventListener('pointerdown', onPanelPointerDown, true);
-    document.removeEventListener('pointerup', onPanelPointerUp, true);
-    document.removeEventListener('pointercancel', onPanelPointerUp, true);
-    document.removeEventListener('pointerover', onPanelPointerOver, true);
-    document.removeEventListener('focusin', onPanelFocusIn, true);
-    document.removeEventListener('transitionend', onPanelTransitionEnd, true);
+    removeControlListeners();
+    window.removeEventListener('pointerover', onPanelPointerOver, true);
+    window.removeEventListener('focusin', onPanelFocusIn, true);
+    window.removeEventListener('transitionend', onPanelTransitionEnd, true);
     window.removeEventListener('resize', repairPanelViewport);
     panelObserver?.disconnect();
     panelObserver = null;
@@ -473,7 +506,8 @@
   globalThis.__YTSS_RECOVERY_BRIDGE__ = {
     version: VERSION,
     protocol: PROTOCOL,
-    get alive() { return alive; },
+    get alive() { return messageAlive || controlAlive || visualRepairAlive; },
+    get messagingAlive() { return messageAlive; },
     get lastTouch() { return lastTouch; },
     touch() { lastTouch = Date.now(); schedulePanelRepair(0); },
     dispose

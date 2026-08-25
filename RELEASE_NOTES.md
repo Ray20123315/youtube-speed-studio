@@ -1,13 +1,13 @@
-# youtube-speed-studio 1.0.3
+# youtube-speed-studio 1.0.4
 
-Zero-refresh extension-context recovery bugfix release.
+Accent-completion and runtime-context/control reliability release.
 
 Highlights:
-- Adds `runtime-bootstrap.js`, which always disposes a surviving recovery bridge object before reinstalling `runtime-recovery.js` in the current extension context. A stale same-version JavaScript global can no longer suppress the fresh `chrome.runtime` receiver after an extension reload.
-- Recovery reinjection is now a separate, verified phase: `runtime-client.js` injects bootstrap + recovery first and requires a successful `YTSS_GET_RUNTIME` handshake before attempting optional Provider/full-content reinjection.
-- A legacy `content.js` guard or optional full-runtime injection failure can no longer turn a working recovery bridge into a false `reinject-failed` / disconnected state.
-- MAIN-world page-context injection failure is recorded separately from isolated-world runtime recovery so button control/runtime messaging can still recover independently; an existing page bridge may continue servicing Download Studio.
-- Runtime discovery now preserves explicit failure codes and recovery diagnostics for the exact carried source tab.
-- v1.0.2 source-link, source-tab priority, orphan-controller takeover, viewport clamping, accent behavior, and signed-media-URL privacy remain intact.
+- Completes the shared Accent token layer across Popup, Options and Download Studio. Amber/Gold and every other Accent preset now drive download hero glow, status text, summary cards, downloadable rows, info chips, selected choices, notices, badges, borders and focus states instead of leaving legacy Violet colors behind.
+- Keeps Shorts, Danger, Error and non-accent progress semantics independent from the selected Accent color.
+- Fixes recovery context composition: MAIN-world `page-context.js` data is treated as supplemental identity data and merged with canonical URL-derived `platform`, `pageType`, `mode`, `href` and `videoId` fields. A correctly carried YouTube source tab is no longer rejected just because the supplemental object lacks runtime contract fields.
+- Makes recovery control interception current-context-first and success-only. `−`, `+`, presets, center-speed and hold controls are captured before stale document listeners, but an unsuccessful recovery action no longer swallows the valid full-content handler.
+- Existing `sourceTabId` / `sourceUrl` handoff, signed-media-URL privacy, adaptive local MP4 muxing and viewport clamping remain intact.
+- Locale scope is unchanged and explicit: Traditional Chinese, Simplified Chinese and English are complete UI languages; other listed locales intentionally use English fallback until real translation packs are added.
 
 See README.md for installation, permissions, platform support, limitations and security notes.

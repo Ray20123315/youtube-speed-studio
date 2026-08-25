@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "product": "youtube-speed-studio",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "owner": "Ray20123315",
   "repository": "Ray20123315/youtube-speed-studio",
   "officialSource": "https://github.com/Ray20123315/youtube-speed-studio",
   "license": "LicenseRef-youtube-speed-studio-Proprietary-1.0",
-  "fingerprint": "8ef8cd5704223a73d9ae2fcc649039d279e1bdf5f723b25ffff5219b511f37ec",
+  "fingerprint": "075b268ae1c5939cd9dd4c1a4ec7cd62dd67eb01788c4bbc71c28b9fa713b5fe",
   "algorithm": "SHA-256",
   "note": "Tamper-evident official-build manifest. Client-side verification cannot technically prevent a determined party from modifying code; the proprietary license controls permitted use, modification, and redistribution.",
   "files": [
@@ -17,13 +17,13 @@
     },
     {
       "path": "README.md",
-      "sha256": "1a67d96b463b594935991d27f429cbfecfddad5687265c0fde4869e946101f55",
-      "size": 8908
+      "sha256": "2e368eb598355c70f27815097c7dc3c1fa71c2cb34fa8cf8dba3df5ba880208e",
+      "size": 9069
     },
     {
       "path": "RELEASE_NOTES.md",
-      "sha256": "8500951238f8da0452e790c0cc64f425130d3f1d155734478187b4548d369acd",
-      "size": 1389
+      "sha256": "d5bff06f7fdf5ccab3d04397352b7c38ba111e7543bfa663b30c0fc400130fb4",
+      "size": 1595
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -32,8 +32,8 @@
     },
     {
       "path": "accent-theme.css",
-      "sha256": "130ac2bbd375ab5c39701ab43cc13f6e6cfd1310f3b97acff645d94ab33de599",
-      "size": 5650
+      "sha256": "54533130242cb2689dd56750c523986c769c31db704d59aab1ede8456b984a1a",
+      "size": 7678
     },
     {
       "path": "background.js",
@@ -72,7 +72,7 @@
     },
     {
       "path": "manifest.json",
-      "sha256": "f2a02e45c4a484e70ec5ce36a03c5b5cac6cba7ec811574a1f9ee01103ada5fc",
+      "sha256": "15234c464a7954f81830f1e59f0826d1cb19ffb3a46ca55f071303df099e0adf",
       "size": 1422
     },
     {
@@ -137,8 +137,8 @@
     },
     {
       "path": "runtime-recovery.js",
-      "sha256": "000d0ccabd99dac50626547f26a76fd94ec6ce0f390c8443cb0571021ea120da",
-      "size": 19474
+      "sha256": "3ccc2c2cb7745bc28e322bf66f89a63a3f81e792e496fc2a10d11f0a9477c021",
+      "size": 20991
     },
     {
       "path": "ui-components.js",
