@@ -30,6 +30,7 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "debug-bootstrap.js",
         "debug-log.js",
         "runtime-bootstrap.js",
         "runtime-recovery.js",

@@ -21,6 +21,8 @@ This branch/build is for forensic evidence collection only. It is not an officia
 - Signed `googlevideo.com/videoplayback` URLs are redacted before storage/export.
 - Keys/strings resembling cookies, Authorization, signatures, tokens, cipher or credentials are redacted.
 - Nothing is automatically uploaded. Export happens only when the user presses **Export Support Bundle JSON**.
+- The dashboard programmatically injects `debug-bootstrap.js` + `debug-log.js` into already-open supported tabs when the diagnostic receiver is absent, so extension reload testing does not require refreshing the video tab first.
+- **Clear and start new capture** stores a capture cutoff timestamp; exported support bundles discard older entries even if an orphan logger later re-flushes stale in-memory data.
 
 ## Test flow
 
