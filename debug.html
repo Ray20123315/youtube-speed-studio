@@ -13,7 +13,7 @@
 <body>
   <main class="wrap">
     <div class="head"><div><h1 style="font-size:20px;margin:0 0 4px">YTSS Forensics</h1><div class="small">本機診斷測試版 · 不自動上傳任何 log</div></div><span class="tag" id="buildTag">DIAGNOSTIC</span></div>
-    <section class="card"><h2>建議測試順序</h2><ol class="steps"><li>按「清除並開始新紀錄」。</li><li>打開正常 Popup / Options / Download Studio，重現金色仍紫色與未連線。</li><li>回 YouTube 頁連點 1× / 1.25× / 1.5× / 2× / 3×、− / +。</li><li>回這裡按「匯出問題包 JSON」，把檔案直接上傳給 ChatGPT。</li></ol></section>
+    <section class="card"><h2>建議測試順序</h2><ol class="steps"><li>按「清除並開始新紀錄」。</li><li>打開正常 Popup / Options / Download Studio，重現金色仍紫色與未連線。</li><li>回 YouTube 頁連點 1× / 1.25× / 1.5× / 2× / 3×、− / +。</li><li>回這裡按「匯出問題包 JSON」；若有點控制器，完成訊息應顯示非 0 Timeline。把 JSON 原檔直接上傳給 ChatGPT。</li></ol></section>
     <section class="card"><h2>操作</h2><div class="grid"><button id="fresh" class="primary">清除並開始新紀錄</button><button id="sample">立即深度取樣</button><button id="openPopup">開正常 Popup（新分頁）</button><button id="openOptions">開 Options</button><button id="openDownload">開 Download Studio</button><button id="export" class="primary">匯出問題包 JSON</button></div></section>
     <section class="card"><h2>即時狀態</h2><pre id="status" class="status">準備中…</pre></section>
     <section class="card"><h2>隱私</h2><p>Log 只寫在本機 extension storage，採 ring buffer；signed googlevideo / videoplayback URL、token、cookie、Authorization 等內容在寫入前即 redaction。匯出由你手動觸發。</p></section>
@@ -22,6 +22,6 @@
   </main>
   <script src="runtime-client.js"></script>
   <script src="debug-log.js"></script>
-  <script src="debug-ui.js"></script>
+  <script src="debug-ui-v2.js"></script>
 </body>
 </html>

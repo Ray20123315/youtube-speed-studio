@@ -1,34 +1,15 @@
-# youtube-speed-studio Diagnostic Test Build 1.0.5.1
+# youtube-speed-studio Diagnostic Test Build 1.0.5.2
 
-This branch/build is for forensic evidence collection only. It is not an official release and must not be promoted to `main` based on diagnostic behavior alone.
+This branch/build is forensic instrumentation only and is based on the verified 1.0.5.1 diagnostic branch plus a v2 observer/dashboard layer. It is not an official release and must not be promoted to `main` based on diagnostic behavior alone.
 
-## What it records locally
+The returned 1.0.5.1 bundle proved that the exact YouTube watch tab answered direct runtime/probe calls while Options/Download Studio reported no runtime, but its persisted timeline was empty. 1.0.5.2 therefore changes the evidence pipeline, not production playback/download logic.
 
-- Content/extension-page `error` and `unhandledrejection` events.
-- Floating controller pointer/click capture and bubble reachability.
-- Target element state, `pointer-events`, `disabled`, hit-test stack (`elementsFromPoint`).
-- Active video `playbackRate` before/after a controller click.
-- Floating panel `data-accent` and computed representative styles.
-- Exact YouTube/bilibili tab direct debug-message reachability.
-- Normal `YTSS_GET_RUNTIME` reachability and `YTSSRuntimeClient.probe()` result.
-- Hidden same-origin snapshots of Popup and Options/Download Studio visible status text and computed accent styles.
+## Added in 1.0.5.2
 
-## Privacy / retention
+- `debug-v2-content.js`: independent current-context observer for panel hit-testing and forced log flush.
+- `debug-ui-v2.js`: Dashboard/embedded-Options default vs preferred discovery trace, exact source-hint comparison, safe runtime summaries, broader computed-style inspection, violet-like element scan, forced tab flush before export.
+- `YTSS_DEBUG_FLUSH`, `YTSS_DEBUG_CLEAR`, `YTSS_DEBUG_MARK`, and `YTSS_DEBUG_V2_SNAPSHOT` messages are handled by the v2 observer. `CLEAR` establishes the capture cutoff/marker; older in-memory entries are excluded by the export cutoff even if a stale logger later flushes them.
+- Panel clicks are captured by coordinates as well as target ancestry, so an overlay that intercepts a click inside the controller is visible through `elementsFromPoint` and `intendedControls`.
+- Exported JSON schema version is 2 and contains a top-level `v2` evidence block that is not collapsed by the older generic sanitizer depth.
 
-- Logs remain in `chrome.storage.local` until manually cleared or automatically aged out.
-- Per-context ring buffer: 260 entries.
-- At most 18 recent sessions, 24-hour TTL.
-- Signed `googlevideo.com/videoplayback` URLs are redacted before storage/export.
-- Keys/strings resembling cookies, Authorization, signatures, tokens, cipher or credentials are redacted.
-- Nothing is automatically uploaded. Export happens only when the user presses **Export Support Bundle JSON**.
-- The dashboard programmatically injects `debug-bootstrap.js` + `debug-log.js` into already-open supported tabs when the diagnostic receiver is absent, so extension reload testing does not require refreshing the video tab first.
-- **Clear and start new capture** stores a capture cutoff timestamp; exported support bundles discard older entries even if an orphan logger later re-flushes stale in-memory data.
-
-## Test flow
-
-1. Load this diagnostic unpacked extension.
-2. Open a YouTube video and the diagnostic popup.
-3. Press **Clear and start new capture**.
-4. Reproduce all known issues: preset buttons, `−/+`, Download Studio connection/rescan, Amber/Gold accent leftovers.
-5. Return to the diagnostic popup and press **Export Support Bundle JSON**.
-6. Upload the exported JSON to ChatGPT.
+Privacy remains local-only: no telemetry/automatic upload; Googlevideo/videoplayback and credential-like data continue to be redacted by the base logger, and v2 summaries include only selected safe runtime fields.
