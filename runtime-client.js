@@ -29,9 +29,9 @@
         const videoId = url.pathname === '/watch'
           ? url.searchParams.get('v')
           : url.pathname.startsWith('/shorts/') ? url.pathname.split('/')[2] || null : null;
-        return { platform: 'youtube', videoId, href: url.href };
+        return { platform: 'youtube', platformLabel: 'YouTube', videoId, href: url.href };
       }
-      return { platform: 'bilibili', videoId: null, href: url.href };
+      return { platform: 'bilibili', platformLabel: 'bilibili', videoId: null, href: url.href };
     } catch {
       return null;
     }
@@ -67,6 +67,26 @@
     return score;
   }
 
+  function normalizeRuntimeResponse(tab, response) {
+    if (!response || typeof response !== 'object') return response;
+    const identity = sourceIdentity(tabUrl(tab));
+    const rawContext = response.context && typeof response.context === 'object' ? response.context : {};
+    const platform = rawContext.platform || identity?.platform || null;
+    const platformLabel = rawContext.platformLabel || identity?.platformLabel || (platform === 'youtube' ? 'YouTube' : platform === 'bilibili' ? 'bilibili' : null);
+    const href = rawContext.href || identity?.href || tabUrl(tab) || null;
+    if (rawContext.platform === platform && rawContext.platformLabel === platformLabel && rawContext.href === href) return response;
+    return {
+      ...response,
+      context: {
+        ...rawContext,
+        platform,
+        platformLabel,
+        href
+      },
+      contextNormalizedFromTab: Boolean(identity && (!rawContext.platform || !rawContext.platformLabel || !rawContext.href))
+    };
+  }
+
   async function probe(tabId, attempts = 1, intervalMs = 120) {
     let error = null;
     for (let i = 0; i < attempts; i++) {
@@ -89,12 +109,11 @@
   async function inject(tab) {
     const url = tabUrl(tab);
     if (!tab?.id || !isSupportedUrl(url)) return { ok: false, code: 'unsupported-page' };
-    const isYoutube = /(^|\.)youtube\.com$/i.test(new URL(url).hostname);
+    const identity = sourceIdentity(url);
+    const isYoutube = identity?.platform === 'youtube';
     let pageBridgeError = null;
     let fullRuntimeError = null;
 
-    // MAIN-world page extraction is useful for Download Studio but must not be allowed
-    // to prevent the isolated-world recovery receiver from coming back online.
     if (isYoutube) {
       try {
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, world: 'MAIN', files: ['page-context.js'] });
@@ -104,36 +123,20 @@
     }
 
     try {
-      // Bootstrap and recovery are intentionally isolated from providers/content.js.
-      // The bootstrap disposes a surviving stale bridge object before the fresh file
-      // registers chrome.runtime listeners in the current extension context.
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         world: 'ISOLATED',
         files: ['runtime-bootstrap.js', 'runtime-recovery.js']
       });
     } catch (error) {
-      return {
-        ok: false,
-        code: 'recovery-inject-failed',
-        error,
-        pageBridgeError: errorText(pageBridgeError)
-      };
+      return { ok: false, code: 'recovery-inject-failed', error, pageBridgeError: errorText(pageBridgeError) };
     }
 
-    // Prove the new receiver exists before touching optional full-runtime files.
     const recovery = await waitForRuntime(tab.id, 12, 100);
     if (!recovery.ok) {
-      return {
-        ok: false,
-        code: 'recovery-no-handshake',
-        error: recovery.error,
-        pageBridgeError: errorText(pageBridgeError)
-      };
+      return { ok: false, code: 'recovery-no-handshake', error: recovery.error, pageBridgeError: errorText(pageBridgeError) };
     }
 
-    // Full content runtime is best effort on already-open tabs. Legacy pages may still
-    // contain the old non-configurable V100 guard; recovery remains authoritative if so.
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -145,13 +148,12 @@
     }
 
     try {
-      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css', 'accent-theme.css'] });
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css', 'accent-theme.css', 'hover-control-fix.css'] });
     } catch {}
 
-    // Prefer the full runtime if it successfully takes ownership; otherwise keep the
-    // already-proven recovery response instead of downgrading to a false disconnect.
     const finalProbe = await waitForRuntime(tab.id, 8, 125);
-    const response = finalProbe.ok ? finalProbe.response : recovery.response;
+    const rawResponse = finalProbe.ok ? finalProbe.response : recovery.response;
+    const response = normalizeRuntimeResponse(tab, rawResponse);
     return {
       ok: true,
       response,
@@ -166,7 +168,10 @@
   async function ensure(tab, { allowInject = true } = {}) {
     if (!tab?.id) return { ok: false, code: 'no-tab' };
     const first = await probe(tab.id, 3, 120);
-    if (first.ok) return { ...first, reinjected: false, recoveryBridge: !!first.response?.recoveryBridge };
+    if (first.ok) {
+      const response = normalizeRuntimeResponse(tab, first.response);
+      return { ...first, response, reinjected: false, recoveryBridge: !!response?.recoveryBridge };
+    }
     if (!allowInject) return { ok: false, code: 'no-receiver', error: first.error };
     return inject(tab);
   }
@@ -227,12 +232,13 @@
         };
         continue;
       }
-      const r = result.response;
+      const r = normalizeRuntimeResponse(tab, result.response);
       if (r.protocol !== PROTOCOL || r.version !== version) {
         stale ||= { tab, response: r };
         continue;
       }
-      if (platform && r.context?.platform !== platform) continue;
+      const inferredPlatform = r.context?.platform || sourceIdentity(tabUrl(tab))?.platform || null;
+      if (platform && inferredPlatform !== platform) continue;
       const candidate = {
         tab,
         tabId: tab.id,
@@ -245,7 +251,7 @@
         sourceMatched: sourceMatchScore(tab, hint, false) > 0
       };
       connected ||= candidate;
-      const isVideo = r.context?.platform === 'youtube'
+      const isVideo = inferredPlatform === 'youtube'
         ? ['watch', 'shorts'].includes(r.context?.pageType)
         : Boolean(r.context?.pageType && r.context.pageType !== 'other');
       if (!requireVideo || isVideo) return { ok: true, kind: isVideo ? 'video' : 'runtime', ...candidate };
@@ -259,6 +265,8 @@
   globalThis.YTSSRuntimeClient = Object.freeze({
     PROTOCOL,
     isSupportedUrl,
+    sourceIdentity,
+    normalizeRuntimeResponse,
     probe,
     waitForRuntime,
     inject,
