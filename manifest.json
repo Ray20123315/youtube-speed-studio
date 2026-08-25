@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.5.5",
-  "version_name": "1.0.5.5 Stability + Resolver RC",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Stability + Resolver RC.",
+  "version": "1.0.5.6",
+  "version_name": "1.0.5.6 Unified Controller + Quality RC",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Unified Controller + Quality RC.",
   "permissions": [
     "storage",
     "downloads",
@@ -12,7 +12,7 @@
     "webRequest"
   ],
   "action": {
-    "default_title": "youtube-speed-studio · Stability + Resolver RC",
+    "default_title": "youtube-speed-studio · Unified Controller + Quality RC",
     "default_popup": "popup.html"
   },
   "content_scripts": [
@@ -22,7 +22,8 @@
       ],
       "js": [
         "page-context.js",
-        "adaptive-resolver-v2-page.js"
+        "adaptive-resolver-v2-page.js",
+        "quality-normalizer-v3-page.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
