@@ -6,7 +6,20 @@
   const forbidden=e=>/SERVER_(?:FORBIDDEN|UNAUTHORIZED)|HTTP\s+(?:401|403)/i.test(String(e?.message||e||''));
   const forceMp4=name=>String(name||'youtube-speed-studio.mp4').replace(/\.[^.\\/]+$/i,'')+'.mp4';
   const looksMp4=bytes=>{if(!(bytes instanceof Uint8Array)||bytes.byteLength<12)return false;const lim=Math.min(bytes.byteLength-4,64);for(let i=0;i<=lim;i++){if(bytes[i]===0x66&&bytes[i+1]===0x74&&bytes[i+2]===0x79&&bytes[i+3]===0x70)return true;}return false;};
-  async function eraseFailed(){const id=downloadJob?.chromeDownloadId;if(!Number.isInteger(id))return;try{await chrome.downloads.cancel(id)}catch{};try{await chrome.downloads.erase({id})}catch{};if(downloadJob)downloadJob.chromeDownloadId=null;}
+  async function existingDownload(id){
+    if(!Number.isInteger(id)) return null;
+    try { const items=await chrome.downloads.search({id}); return items?.[0]||null; } catch { return null; }
+  }
+  async function eraseFailed(){
+    const id=downloadJob?.chromeDownloadId;
+    if(!Number.isInteger(id)) return;
+    const item=await existingDownload(id);
+    if(item){
+      if(item.state==='in_progress') { try{await chrome.downloads.cancel(id)}catch{} }
+      if(await existingDownload(id)) { try{await chrome.downloads.erase({id})}catch{} }
+    }
+    if(downloadJob?.chromeDownloadId===id) downloadJob.chromeDownloadId=null;
+  }
   async function blobFallback(choice,title,signal,firstError){
     const progressive=choice?.progressive;
     const expected=Number(progressive?.contentLength)||Number(choiceSize(choice))||0;
@@ -27,5 +40,5 @@
   runProgressiveDownload=async function(choice,title,signal){
     try{return await originalRun(choice,title,signal)}catch(error){if(!forbidden(error))throw error;await eraseFailed();return blobFallback(choice,title,signal,error)}
   };
-  globalThis[KEY]=Object.freeze({version:1});
+  globalThis[KEY]=Object.freeze({version:2});
 })();
