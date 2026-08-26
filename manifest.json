@@ -1,17 +1,19 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.4",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。",
+  "version": "1.0.5.12",
+  "version_name": "1.0.5.12 Cryptographic Anti-Tamper",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題、測試功能鎖與離線授權密碼學防偽鎖。",
   "permissions": [
     "storage",
     "downloads",
     "scripting",
-    "alarms"
+    "alarms",
+    "webRequest"
   ],
   "action": {
-    "default_title": "youtube-speed-studio",
-    "default_popup": "popup.html"
+    "default_title": "youtube-speed-studio · Cryptographic Anti-Tamper",
+    "default_popup": "tamper-locked.html"
   },
   "content_scripts": [
     {
@@ -19,7 +21,9 @@
         "https://www.youtube.com/*"
       ],
       "js": [
-        "page-context.js"
+        "page-context.js",
+        "adaptive-resolver-v2-page.js",
+        "quality-normalizer-v3-page.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
@@ -30,14 +34,20 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "tamper-lock.js",
+        "accent-sync.js",
+        "download-ready-gate.js",
+        "adaptive-capture-v2-bridge.js",
         "runtime-bootstrap.js",
         "runtime-recovery.js",
         "providers.js",
-        "content.js"
+        "content.js",
+        "preset-lock.js"
       ],
       "css": [
         "content.css",
-        "accent-theme.css"
+        "accent-theme.css",
+        "hover-control-fix.css"
       ],
       "run_at": "document_idle"
     }
@@ -57,6 +67,6 @@
     "https://api.github.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "integrity-guard.js"
   }
 }

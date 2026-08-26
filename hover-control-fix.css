@@ -1,0 +1,43 @@
+/* Repair RC: keep hover expansion inside the existing 236px viewport footprint.
+   CSS :hover is authoritative so full controls remain reachable even if a stale
+   JS hover timer/class misses a transition. */
+#ytss-panel.ytss-hover-mode,
+#ytss-panel.ytss-hover-mode.ytss-hover-expanded,
+#ytss-panel.ytss-hover-mode:focus-within,
+#ytss-panel.ytss-hover-mode.ytss-dragging,
+#ytss-panel.ytss-hover-mode:hover {
+  width: 236px !important;
+  max-width: calc(100vw - 16px);
+}
+
+#ytss-panel.ytss-hover-mode:hover .ytss-hover-pill,
+#ytss-panel.ytss-hover-mode:focus-within .ytss-hover-pill,
+#ytss-panel.ytss-hover-mode.ytss-hover-expanded .ytss-hover-pill,
+#ytss-panel.ytss-hover-mode.ytss-dragging .ytss-hover-pill {
+  display: none !important;
+}
+
+#ytss-panel.ytss-hover-mode:hover .ytss-shell,
+#ytss-panel.ytss-hover-mode:focus-within .ytss-shell,
+#ytss-panel.ytss-hover-mode.ytss-hover-expanded .ytss-shell,
+#ytss-panel.ytss-hover-mode.ytss-dragging .ytss-shell,
+#ytss-panel.ytss-hover-mode:hover .ytss-body,
+#ytss-panel.ytss-hover-mode:focus-within .ytss-body,
+#ytss-panel.ytss-hover-mode.ytss-hover-expanded .ytss-body,
+#ytss-panel.ytss-hover-mode.ytss-dragging .ytss-body {
+  display: block !important;
+}
+
+#ytss-panel.ytss-hover-mode:hover .ytss-header,
+#ytss-panel.ytss-hover-mode:focus-within .ytss-header,
+#ytss-panel.ytss-hover-mode.ytss-hover-expanded .ytss-header,
+#ytss-panel.ytss-hover-mode.ytss-dragging .ytss-header {
+  height: 62px;
+}
+
+#ytss-panel.ytss-hover-mode .ytss-body { padding-left: 10px; padding-right: 10px; }
+#ytss-panel.ytss-hover-mode .ytss-main-speed { grid-template-columns: 40px minmax(0,1fr) 40px; gap: 7px; }
+#ytss-panel.ytss-hover-mode .ytss-round-btn { width: 40px; height: 40px; }
+#ytss-panel.ytss-hover-mode .ytss-speed-display { min-width: 0; }
+#ytss-panel.ytss-hover-mode .ytss-presets { gap: 5px; }
+#ytss-panel.ytss-hover-mode .ytss-preset { flex: 1 0 38px; min-width: 38px; padding-left: 5px; padding-right: 5px; }
