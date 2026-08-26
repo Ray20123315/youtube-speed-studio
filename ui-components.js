@@ -295,3 +295,50 @@
     if (attempts >= 80) clearInterval(timer);
   }, 25);
 })();
+
+(() => {
+  'use strict';
+  if (globalThis.__YTSS_TAMPER_UI_GUARD_V1__) return;
+  globalThis.__YTSS_TAMPER_UI_GUARD_V1__ = true;
+  let overlay = null;
+  let lastState = null;
+
+  function lockedFrom(state) { return !state || state.pending !== false || state.locked !== false; }
+  function ensureOverlay(state) {
+    lastState = state || lastState;
+    if (!lockedFrom(state)) { overlay?.remove(); overlay = null; return; }
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'ytssTamperUiOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:#0e0e12;color:#f4f4f6;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      overlay.innerHTML = '<section style="width:min(560px,100%);padding:24px;border:1px solid rgba(255,92,112,.5);border-radius:22px;background:#18181f;box-shadow:0 28px 80px rgba(0,0,0,.48)"><small style="font:800 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.13em;color:#ff8997">YOUTUBE SPEED STUDIO · CRYPTOGRAPHIC INTEGRITY</small><h1 style="margin:10px 0 8px;font-size:26px">防偽驗證中／已鎖定</h1><p id="ytssTamperUiMessage" style="margin:0;color:#b4b6bf;line-height:1.7">在密碼學完整性驗證完成前，功能保持鎖定。</p></section>';
+      document.documentElement.appendChild(overlay);
+      overlay.addEventListener('click', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+      overlay.addEventListener('pointerdown', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+      overlay.addEventListener('keydown', e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+    }
+    const msg = overlay.querySelector('#ytssTamperUiMessage');
+    if (msg) {
+      const code = state?.code || 'verification-pending';
+      msg.textContent = state?.pending !== false
+        ? '在密碼學完整性驗證完成前，功能保持鎖定。'
+        : `已偵測未授權變更或簽章失效（${code}）。請安裝由離線授權重新簽署的新版本。`;
+    }
+  }
+
+  async function refresh() {
+    try {
+      const state = await chrome.runtime.sendMessage({type:'YTSS_GET_TAMPER_STATE'});
+      ensureOverlay(state);
+    } catch {
+      ensureOverlay({pending:true,locked:true,code:'integrity-service-unavailable'});
+    }
+  }
+  ensureOverlay({pending:true,locked:true,code:'verification-pending'});
+  try {
+    chrome.storage.onChanged.addListener((changes,area)=>{
+      if(area==='local'&&changes.ytssTamperLockState) ensureOverlay(changes.ytssTamperLockState.newValue);
+    });
+  } catch {}
+  refresh();
+})();

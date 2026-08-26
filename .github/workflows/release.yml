@@ -12,13 +12,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify extension metadata
+      - name: Verify signed anti-tamper manifest
         run: |
           python -m json.tool manifest.json >/dev/null
-          VERSION="$(python -c 'import json;print(json.load(open("manifest.json"))["version"])')"
-          test -n "$VERSION"
-          python scripts/generate_integrity.py
-          git diff --exit-code -- integrity.json
+          python -m json.tool integrity-lock.json >/dev/null
+          python scripts/verify_signed_integrity.py
       - name: Build release package
         run: python scripts/build_release.py
       - name: Create official GitHub Release

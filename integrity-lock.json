@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "payload": {
+    "schemaVersion": 1,
+    "product": "youtube-speed-studio",
+    "version": "1.0.5.12",
+    "authorizationCounter": 1,
+    "buildId": "83e347b6-e1ec-4b3d-acac-d962b591f4f6",
+    "fileIdentityAlgorithm": "git-blob-sha1+size",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 3404,
+        "gitBlobSha1": "97b3fd8934dd97edf0dcb25ae3c18ec7c14f0f45"
+      },
+      {
+        "path": "README.md",
+        "size": 7053,
+        "gitBlobSha1": "c01a5d755aeb9a7871001790bd15c329fa07cbb9"
+      },
+      {
+        "path": "RELEASE_NOTES.md",
+        "size": 1562,
+        "gitBlobSha1": "33f325b930a25356c9805f7f075672768efe4ef2"
+      },
+      {
+        "path": "THIRD_PARTY_NOTICES.md",
+        "size": 827,
+        "gitBlobSha1": "35afde70f46289bbd5449429a7a5a4f2552dde80"
+      },
+      {
+        "path": "accent-sync.js",
+        "size": 2070,
+        "gitBlobSha1": "b72fb4b1d485ddc3b5df59363d2eddd23479fdc7"
+      },
+      {
+        "path": "accent-theme.css",
+        "size": 7678,
+        "gitBlobSha1": "d0a28d125ef7a4d46afe4f1b5f9561cfb76335ad"
+      },
+      {
+        "path": "adaptive-capture-bridge.js",
+        "size": 1660,
+        "gitBlobSha1": "91908845e719cb0612bb8235769d177a1fc26314"
+      },
+      {
+        "path": "adaptive-capture-v2-bridge.js",
+        "size": 1428,
+        "gitBlobSha1": "1a0ac7c14c441d12a29abfe528ed7cef459612c5"
+      },
+      {
+        "path": "adaptive-resolver-page.js",
+        "size": 13627,
+        "gitBlobSha1": "f83cf492fb111835d902114dfdc3d31e8e8caa68"
+      },
+      {
+        "path": "adaptive-resolver-v2-page.js",
+        "size": 11606,
+        "gitBlobSha1": "9304bd45abb21151c5cc1ebbeb96bb34d38b1d6b"
+      },
+      {
+        "path": "background-adaptive.js",
+        "size": 3031,
+        "gitBlobSha1": "a90ed81fd469491ddb641a5c99215300d97657bf"
+      },
+      {
+        "path": "background.js",
+        "size": 2925,
+        "gitBlobSha1": "39ef75d973723b0af36c3f83c883a8143f5ca4d0"
+      },
+      {
+        "path": "content.css",
+        "size": 12873,
+        "gitBlobSha1": "4c52da5a690198ed3c0e9808824ed5a92a414824"
+      },
+      {
+        "path": "content.js",
+        "size": 64024,
+        "gitBlobSha1": "a629bec4ace933106f8233eefbcb8de112993867"
+      },
+      {
+        "path": "control-failsafe-v2.js",
+        "size": 6747,
+        "gitBlobSha1": "a59d167a2e7cf05a2b105f2980426e875fb30816"
+      },
+      {
+        "path": "download-direct-fallback-v1.js",
+        "size": 2806,
+        "gitBlobSha1": "d8df6fbfe1a2f157bb7e349623818f2642858c94"
+      },
+      {
+        "path": "download-ready-gate.js",
+        "size": 1470,
+        "gitBlobSha1": "475d92518cb4f9e037c6e864708fb789b72d4cf7"
+      },
+      {
+        "path": "hover-control-fix.css",
+        "size": 1950,
+        "gitBlobSha1": "3ec55a46f23c400b0d1e49e1de716bbe7940f93a"
+      },
+      {
+        "path": "i18n.js",
+        "size": 21248,
+        "gitBlobSha1": "14c073a81567ce2d0786947bcc6b8be738c56911"
+      },
+      {
+        "path": "icons/icon128.png",
+        "size": 2538,
+        "gitBlobSha1": "bf464d14fab6f90df53beea129441fb409a0dce9"
+      },
+      {
+        "path": "icons/icon16.png",
+        "size": 355,
+        "gitBlobSha1": "0f0745443ff48190c7ecfe04a997886ec5690694"
+      },
+      {
+        "path": "icons/icon48.png",
+        "size": 925,
+        "gitBlobSha1": "7e85b760cc8747b74374aefd19e0998f77e8d945"
+      },
+      {
+        "path": "integrity-guard.js",
+        "size": 9884,
+        "gitBlobSha1": "6f12c9738652bcc5edee585edbb5a2637eddff1b"
+      },
+      {
+        "path": "integrity.json",
+        "size": 554,
+        "gitBlobSha1": "247a9aeceb80c17317c162dec4c5ee220ade6177"
+      },
+      {
+        "path": "manifest.json",
+        "size": 1838,
+        "gitBlobSha1": "70296b1a741a7f25c30520257b69bc7ccf9d0574"
+      },
+      {
+        "path": "mp4-remux-worker.js",
+        "size": 780,
+        "gitBlobSha1": "7a515eadf0cf8abdc0288b240f9a100b3af684c9"
+      },
+      {
+        "path": "mp4-remux.js",
+        "size": 14168,
+        "gitBlobSha1": "e7af6bb8a7ddaaf54823ac817fbbb732c4dd0f4a"
+      },
+      {
+        "path": "options.css",
+        "size": 40676,
+        "gitBlobSha1": "f9a8d69cc4e35d37024067988b0f847427b966bf"
+      },
+      {
+        "path": "options.html",
+        "size": 19266,
+        "gitBlobSha1": "a3f8025980a5effb62350a43ca7dec1e25abdba5"
+      },
+      {
+        "path": "options.js",
+        "size": 54282,
+        "gitBlobSha1": "0cead79fbe0cc31f55dca403f67a7d0fd0406920"
+      },
+      {
+        "path": "page-context.js",
+        "size": 39852,
+        "gitBlobSha1": "7d91a40498ce0e999542ec5220e34eb09730913c"
+      },
+      {
+        "path": "popup.css",
+        "size": 11679,
+        "gitBlobSha1": "83d9899194820a8421db18415c43375bd4782e89"
+      },
+      {
+        "path": "popup.html",
+        "size": 4651,
+        "gitBlobSha1": "0c4fb49c07e990f4dd3ca0bcd2959cc26fc576fe"
+      },
+      {
+        "path": "popup.js",
+        "size": 10000,
+        "gitBlobSha1": "51b1185d771e89f3027a001ac94564124fbd6607"
+      },
+      {
+        "path": "preset-lock.js",
+        "size": 1999,
+        "gitBlobSha1": "fd36bd363bb382d3ecb3065b50e33d0dc356015e"
+      },
+      {
+        "path": "providers.js",
+        "size": 5369,
+        "gitBlobSha1": "b7343aad615d5923a6f9fdf8ff3e851c22a7376e"
+      },
+      {
+        "path": "quality-normalizer-v3-page.js",
+        "size": 4794,
+        "gitBlobSha1": "38946e8902c6dd64cadad6096d568109447dcabd"
+      },
+      {
+        "path": "runtime-bootstrap.js",
+        "size": 736,
+        "gitBlobSha1": "e7cab5b26784952d26819c44a8463d14d5f37fa3"
+      },
+      {
+        "path": "runtime-client.js",
+        "size": 9006,
+        "gitBlobSha1": "8f59d99d5eb8d7648b4f63a72d085e1c77a9de87"
+      },
+      {
+        "path": "runtime-recovery.js",
+        "size": 18407,
+        "gitBlobSha1": "d59ea81db64763a6be25414d723ea4027dd05d47"
+      },
+      {
+        "path": "support-bootstrap-v2.js",
+        "size": 8295,
+        "gitBlobSha1": "7e4c844e2f1ba4babb476ff4fde4f938fa2d63cc"
+      },
+      {
+        "path": "tamper-lock.js",
+        "size": 3372,
+        "gitBlobSha1": "07d4d413269a272fcf3de7e11283b0f175a4e727"
+      },
+      {
+        "path": "tamper-locked.html",
+        "size": 1637,
+        "gitBlobSha1": "0166b694bbc70219b66121d55742b2dd01a3185e"
+      },
+      {
+        "path": "ui-components.js",
+        "size": 19822,
+        "gitBlobSha1": "2534aed4f85c08564cb709df9034883842a94d0b"
+      }
+    ]
+  },
+  "signature": {
+    "algorithm": "RSASSA-PKCS1-v1_5/SHA-256",
+    "keyFingerprintSha256": "c15374dfe729285f9d414053bcc5e04660244716cb1959bceacdd0c4356b7c93",
+    "valueBase64": "Gqr9Khk2Pz2x8fXiXqndkIQJnqVjGWACG6kokTtv2M6MkyDa66uvtXksxcC0c0Y+rRlmZnfpMctnGR9iE8oUUREibaOG/2TvHVwyPiBX1Xm0U5YkNS9NhqL6zerRfo4jZeJF5tS+HxH2PJKS+B6gBIcK5XpbnbHmjd/7wUMIzzs2rXW0ni8UY5X3Z+w8VBvvL89tE5G0bhdM5jfbHK4xX1iXTZuKiM3omBq2o/zY63piXlG8T3ds9QwgTLhbNjOtpOJpyB2EtP891erGcirdnBCb3blDfkVPELEjInvIRiyylIbhHuoy2Wtpn4b18DPtqdUHt0en3xhwTCQ6+AT0oTk7emMHZ+NlgO1rmOwCTDv78H9dcLKu4wVL25PTDX2btLDcOHuanNHK7Av1fxllBKZa7lO35Y0/fdSmgyqkXBntNt67SnaxQY2l3lzcBCqz1w37fMY6FZHrKtxGZyC5oubf9i4O2OteOGtKweJZncXM6loH5DUog6os7VrT3SlD"
+  }
+}

@@ -1,13 +1,14 @@
-# youtube-speed-studio 1.0.4
+# youtube-speed-studio 1.0.5.12
 
-Accent-completion and runtime-context/control reliability release.
+Cryptographic anti-tamper and controlled-test-access release.
 
 Highlights:
-- Completes the shared Accent token layer across Popup, Options and Download Studio. Amber/Gold and every other Accent preset now drive download hero glow, status text, summary cards, downloadable rows, info chips, selected choices, notices, badges, borders and focus states instead of leaving legacy Violet colors behind.
-- Keeps Shorts, Danger, Error and non-accent progress semantics independent from the selected Accent color.
-- Fixes recovery context composition: MAIN-world `page-context.js` data is treated as supplemental identity data and merged with canonical URL-derived `platform`, `pageType`, `mode`, `href` and `videoId` fields. A correctly carried YouTube source tab is no longer rejected just because the supplemental object lacks runtime contract fields.
-- Makes recovery control interception current-context-first and success-only. `−`, `+`, presets, center-speed and hold controls are captured before stale document listeners, but an unsuccessful recovery action no longer swallows the valid full-content handler.
-- Existing `sourceTabId` / `sourceUrl` handoff, signed-media-URL privacy, adaptive local MP4 muxing and viewport clamping remain intact.
-- Locale scope is unchanged and explicit: Traditional Chinese, Simplified Chinese and English are complete UI languages; other listed locales intentionally use English fallback until real translation packs are added.
+- Adds an RSA-3072 / SHA-256 signed `integrity-lock.json` covering every file shipped in the extension package except the signed manifest itself.
+- Pins the public verification key in the extension. The corresponding private signing credential is deliberately kept offline and is not stored in GitHub, the extension ZIP, diagnostics, project memory, or release automation.
+- Starts fail-closed: the toolbar popup points to the TAMPER LOCK page until the signed package is verified. Popup/Options UI and page controls remain blocked while verification is pending or locked.
+- Operational background listeners are registered only after signed-integrity verification succeeds. Tamper state is re-checked every minute.
+- A detected tamper event creates a persistent authorization-counter latch. Restoring the same build is not enough; a later authorized build must carry a higher signed counter.
+- Release CI verifies the signed manifest before packaging and refuses to package an offline AI-change authorization credential or an actual PEM private key.
+- Keeps the Download Studio test-access gate and the temporarily locked quick-preset buttons from 1.0.5.11.
 
-See README.md for installation, permissions, platform support, limitations and security notes.
+Security boundary: a fully editable unpacked browser extension cannot be made mathematically impossible to rewrite. This release provides a pinned public trust anchor, signed official-build identity, fail-closed behavior, and an offline authorization barrier for minting future accepted builds.

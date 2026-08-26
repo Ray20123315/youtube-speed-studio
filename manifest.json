@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "youtube-speed-studio",
-  "version": "1.0.5.11",
-  "version_name": "1.0.5.11 Feature Lock + Download Test Gate RC",
-  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題與官方更新提醒。Feature Lock + Download Test Gate RC.",
+  "version": "1.0.5.12",
+  "version_name": "1.0.5.12 Cryptographic Anti-Tamper",
+  "description": "YouTube / bilibili 播放控制、智慧 Profile、Download Studio、本機 MP4 合併、多語言、自製 UI、主題、測試功能鎖與離線授權密碼學防偽鎖。",
   "permissions": [
     "storage",
     "downloads",
@@ -12,8 +12,8 @@
     "webRequest"
   ],
   "action": {
-    "default_title": "youtube-speed-studio · Feature Lock + Download Test Gate RC",
-    "default_popup": "popup.html"
+    "default_title": "youtube-speed-studio · Cryptographic Anti-Tamper",
+    "default_popup": "tamper-locked.html"
   },
   "content_scripts": [
     {
@@ -34,6 +34,7 @@
         "https://www.bilibili.com/*"
       ],
       "js": [
+        "tamper-lock.js",
         "accent-sync.js",
         "download-ready-gate.js",
         "adaptive-capture-v2-bridge.js",
@@ -66,6 +67,6 @@
     "https://api.github.com/*"
   ],
   "background": {
-    "service_worker": "background-adaptive.js"
+    "service_worker": "integrity-guard.js"
   }
 }

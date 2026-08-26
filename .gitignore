@@ -1,0 +1,9 @@
+# Local/private authorization and project work products — never commit.
+*AI_CHANGE_AUTHORIZATION*.md
+*AI_CHANGE_AUTHORIZATION*.tar.gz
+private-auth/
+security-staging/
+.Ray_Chen/
+dist/
+__pycache__/
+*.pyc
